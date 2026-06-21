@@ -28,8 +28,8 @@
         </div>
         @endif
 
-      <button class="tab-button.active" onclick="openTab(event, 'bids-product')">入札情報</button>
-      <button class="tab-button.active" onclick="openTab(event, 'product')">商品情報</button>
+      <button class="tab-button active" onclick="openTab(event, 'bids-product')">入札情報</button>
+      <button class="tab-button" onclick="openTab(event, 'product')">商品情報</button>
       <button class="tab-button" onclick="openTab(event, 'transaction-detail')">取引明細</button>
      
        <div id="bids-product" class="tab-content">
@@ -53,9 +53,9 @@
             <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc;">
                 <span style="width: 150px;">{{ $bid->yic_users->name }}</span>
                 <span style="width: 150px;">{{ $bid->yic_users->user_id }}</span>
-                <span style="width: 150px;">{{ $bid->products->product_name }}</span>
+                <span style="width: 150px;">{{ $bid->products->product_name ?? '不明'}}</span>
                 <span style="width: 150px;">{{ $bid->product_id }}</span>
-                <span style="width: 150px;">{{ $bid->products->comment }}</span>
+                <span style="width: 150px;">{{ $bid->products->comment ?? 'なし'}}</span>
                 <span style="width: 150px;"> {{ $bid->bid_amount}}円</span>
             </div>
             @endforeach
@@ -101,6 +101,52 @@
        </div>
        @endforeach
        </div>
+
+       <div id="transaction-detail" class="tab-content">
+        <h2>取引明細（入金通知）</h2>
+        
+        <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc; font-weight: bold; padding-bottom: 5px;">
+            <span style="width: 150px;">取引ID</span>
+            <span style="width: 150px;">買い手ID</span>
+            <span style="width: 200px;">商品名</span>
+            <span style="width: 150px;">落札金額</span>
+            <span style="width: 150px;">ステータス</span>
+            
+        </div>
+
+         @foreach ($transactions as $transaction)
+        <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc; padding: 10px 0; "{{ $transaction->status == 2 ? 'background-color: #ffffe0;' : '' }}">
+            <span style="width: 150px;">{{ $transaction->transaction_id }}</span>
+            <span style="width: 150px;">{{ $transaction->buyer_id }}</span>
+            <span style="width: 200px;">{{ $transaction->products?->product_name ?? '不明な商品'}}</span>
+            
+            
+            <span style="width: 150px;">{{ number_format($transaction->winnig_price) }}円</span>
+            
+            <span style="width: 150px;">
+                @if($transaction->status == 1)
+                    未入金
+                @elseif($transaction->status == 2)
+                    <strong style="color: red;">入金確認済み</strong>
+                   <div>
+                    <a href="{{ route('admin.shop.shipping.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: green; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
+                        発送依頼へ
+                    </a>
+                   </div>
+                   @elseif($transaction->status == 4)
+                   <strong style="color: red;">受け取り完了</strong>
+                   <div>
+                    <a href="{{ route('admin.shop.transfer.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: green; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
+                        振り込みへ
+                    </a>
+                   </div>
+                @else
+                    発送済み
+                @endif
+            </span>
+        </div>
+        @endforeach
+    </div>
        
        <script>
         function openTab(evt, tabName) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\ContactMail;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Transaction;
 use App\Models\YIC_user;
 use App\Models\Product;
@@ -22,7 +23,8 @@ class ShopController extends Controller
      {
         $bids = Bid::with(['yic_users', 'products'])->get();
         $products = Product::with(['yic_users'])->get();
-        return view('admin.shop.dashboard', compact('bids', 'products'));
+        $transactions = Transaction::with('products')->orderBy('updated_at', 'desc')->get();
+        return view('admin.shop.dashboard', compact('bids', 'products', 'transactions'));
 
      }
 
@@ -74,6 +76,55 @@ class ShopController extends Controller
 
         Mail::to($buyer->bidder_id)->send(new ContactMail($transaction, $product));
 
+     }
+
+     public function showshipping($transaction_id)
+     {
+          $transaction = Transaction::with('products')
+          ->where('transaction_id', $transaction_id)
+          ->firstOrFail();
+
+          return view('admin.shop.shipping', compact('transaction'));
+     }
+
+     public function processShipping($transaction_id)
+     {
+          $transaction = Transaction::with('products')
+          ->where('transaction_id', $transaction_id)
+          ->firstOrFail();
+
+         
+
+          return redirect()->route('admin.shop.dashboard')
+          ->with('success', '発送依頼が完了しました。');
+     }
+
+     public function showtransfer($transaction_id)
+     {
+         $transaction = Transaction::with('products')
+          ->where('transaction_id', $transaction_id)
+          ->firstOrFail();
+
+          return view('admin.shop.transfer', compact('transaction'));
+     }
+
+
+
+     public function processTransfer($transaction_id)
+     {
+        $transaction = Transaction::where('transaction_id', $transaction_id)
+        ->firstOrFail();
+
+        $commissionRate = 0.10;
+        $payoutAmount = $transaction->winning_price * (1 - $commissionRate);
+
+       $transaction->update([
+        'status' => 5,
+        'payout_amount' => $payoutAmount,
+        'payout_completed_at' => now(), 
+    ]);
+
+    return redirect()->route('admin.shop.dashboard')->with('success', '振り込み完了しました。');
      }
 }
     

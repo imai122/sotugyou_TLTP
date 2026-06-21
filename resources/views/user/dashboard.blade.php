@@ -11,6 +11,19 @@
     </style>
 </head>
 <body>
+    
+       @if (session('success'))
+        <div style="color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; padding: 12px; margin: 10px; border-radius: 4px; font-weight: bold;">
+            ✅ {{ session('success') }}
+        </div>
+        @endif
+
+
+        @if (session('error'))
+        <div style="color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin: 10px; border-radius: 4px; font-weight: bold;">
+            ⚠️ {{ session('error') }}
+        </div>
+        @endif
 
     <div>
         <button class="tab-button" onclick="openTab(event, 'product-history')">商品登録</button>
@@ -170,6 +183,28 @@
             商品名: <strong>{{ $transaction->products->product_name ?? '不明な商品' }}</strong><br>
             落札金額: {{ number_format($transaction->winnig_price) }} 円<br>
             落札日時: {{ \Carbon\Carbon::parse($transaction->won_at)->format('Y/m/d H:i') }}
+
+            <span style="width: 150px;">
+                @if($transaction->status == 2)
+                <div>
+                    <a href="{{ route('user.notification.show',$transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: green; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
+                        発送依頼商品について
+                    </a>
+                </div>
+                @elseif($transaction->status == 3)
+                <div>
+                既に発送依頼は完了しています
+                </div>
+                @elseif($transaction-> status == 5)
+                <div>
+                    {{ number_format($transaction->payout_amount) }} 円が振り込まれました
+                </div>
+                @else
+                <div>
+                    まだ未発送です
+                </div>
+                @endif
+            </span>
         </div>
     @empty
         <p>現在、落札した商品はありません。</p>

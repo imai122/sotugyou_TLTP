@@ -123,18 +123,35 @@
     <div id="notification" class="tab-content">
         @forelse ($won_transactions as $transaction)
         <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-        商品名: <strong>{{ $transaction->products->product_name ?? '不明な商品' }}</strong><br>
+        商品名: <strong>{{ $transaction->products->product_name  }}</strong><br>
         落札金額: {{ number_format($transaction->winnig_price) }} 円<br>
         落札日時: {{ \Carbon\Carbon::parse($transaction->won_at)->format('Y/m/d H:i') }}
+       @if($transaction->status == 1)
+        
+            <a href="{{ route('buyer.deposit.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: green; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
+                入金画面へ進む
+            </a>
+        @elseif($transaction->status == 3)
+    <div style="padding: 10px; background-color: #fff3cd; color: #856404; font-weight: bold; margin-bottom: 10px;">
+        ⚠️ 商品の発送依頼が完了しました。
+    
+    <a href="{{ route('buyer.check.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: #007bff; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
+        発送依頼商品について
+    </a>
+</div>
+      
+        <div style="padding: 10px; background-color: #d4edda; color: #155724; font-weight: bold; width: fit-content;">
+            ✅ この取引はすでに入金処理が完了しています。
+        </div>
+        @endif
         </div>
         @empty
-        <div>
-            新しい通知はありません
+        <div style="padding: 20px 0; color: #666;">
+            新しい通知はありません。
         </div>
         @endforelse
     </div>
-
-    </div>
+    
     
     <script>
         function openTab(evt, tabName) {

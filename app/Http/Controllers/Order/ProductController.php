@@ -8,6 +8,7 @@ use App\Http\Request\CreateRequest;
 use App\Http\Requests\BidRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\YIC_user;
 use App\Models\Product;
@@ -152,6 +153,52 @@ public function storeBid(BidRequest $request, $product_id)
         return view('buyer.dashboard', compact('other_products', 'my_bids', 'won_transactions'));
     }
 
+    public function showdeposit($transaction_id)
+    {
+          $transaction = Transaction::with('products')
+          ->where('transaction_id', $transaction_id)
+          ->where('buyer_id', Auth::user()->user_id) 
+          ->firstOrFail();
 
+          return view('buyer.deposit', compact('transaction'));
     }
+
+    public function processDeposit($transaction_id)
+    {
+        $transaction = Transaction::where('transaction_id', $transaction_id)
+        ->where('buyer_id', Auth::user()->user_id)//ログインしているユーザと一致しているか確認(buyer_id)
+        ->firstOrFail();
+
+        $transaction->update([
+            'status' => 2 
+
+        ]);
+
+        return redirect()->route('buyer.dashboard')->with('success', '入金が完了しました！管理者に通知されました。');
+    }
+
+    public function showcheck($transaction_id)
+    {
+        $transaction = Transaction::with('products')
+          ->where('transaction_id', $transaction_id)
+          ->firstOrFail();
+
+          return view('buyer.check', compact('transaction'));
+    }
+
+    public function processCheck($transaction_id)
+    {
+        $transaction = Transaction::with('products')
+          ->where('transaction_id', $transaction_id)
+          ->firstOrFail();
+
+           $transaction->update([
+            'status' => 4,
+            'delivered_at' => now()
+    ]);
+
+          return redirect()->route('buyer.dashboard')->with('success', '受け取り確認完了しました。');
+    }
+}
+
 

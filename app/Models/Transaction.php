@@ -22,12 +22,16 @@ class Transaction extends Model
         'buyer_id',
         'winnig_price', 
         'status',
-        'won_at'
+        'won_at',
+        'payment_received_at', 
+        'delivered_at',        
+        'payout_amount',       
+        'payout_completed_at', 
     ];
 
     public function YIC_users(): BelongsTo
     {
-        return $this->belongsTo(YIC_user::class);
+        return $this->belongsTo(YIC_user::class, 'buyer_id', 'user_id');
     }
 
     protected $primaryKey = 'transaction_id';

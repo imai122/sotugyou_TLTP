@@ -150,7 +150,27 @@ class OrderController extends Controller
         return view('user.show', compact('product'));
     }
 
-   
+    public function shownotifiction($transaction_id)
+    {
+          $transaction = Transaction::with('products')
+          ->where('transaction_id', $transaction_id)
+          ->firstOrFail();
+
+          return view('user.notification', compact('transaction'));
+    }
+
+    public function processNotification($transaction_id)
+    {
+        $transaction = Transaction::where('transaction_id', $transaction_id)
+        ->firstOrFail();
+
+        $transaction->update([
+            'status' => 3,
+            'payment_received_at' => now()
+        ]);
+
+        return redirect()->route('user.dashboard')->with('success', '発送完了しました。');
+    }
 
     }
 

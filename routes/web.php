@@ -27,6 +27,17 @@ Route::prefix('admin/system/login')
         Route::post('/', 'loginProcess')->name('process'); 
     });
 
+
+Route::prefix('user')
+->name('user.')
+->controller(OrderController::class)
+->group(function() {
+    Route::get('/create', 'create')->name('create');
+    Route::post('/create', 'loginstore')->name('procss');
+});
+
+
+
 Route::prefix('user/login')
     ->controller(AuthController::class) 
     ->name('user.login.')
@@ -62,6 +73,10 @@ Route::prefix('admin/shop')
     Route::get('/edit/{product_id}', 'edit')->name('edit');
     Route::put('/{product_id}', 'update')->name('update');
     Route::delete('{product_id}', 'destroy')->name('destroy');
+    Route::get('/shipping/{transaction_id}', [ShopController::class, 'showshipping'])->name('shipping.show');
+    Route::post('/shipping/{transaction_id}', [ShopController::class, 'processShipping'])->name('shipping.process');
+    Route::get('/transfer/{transaction_id}', [ShopController::class, 'showtransfer'])->name('transfer.show');
+    Route::post('/transfer/{transaction_id}', [ShopController::class, 'processTransfer'])->name('transfer.process');
 });
 
 //出品者グループ化
@@ -70,19 +85,17 @@ Route::prefix('user')
 ->middleware(['role:user'])
 ->controller(OrderController::class)
 ->group(function() {
-    Route::get('/create', 'create')->name('create');
-    Route::post('/create', 'loginstore')->name('procss');
-
+    // Route::get('/create', 'create')->name('create');
+    // Route::post('/create', 'loginstore')->name('procss');
     Route::get('/dashboard', 'index')->name('dashboard');
-
     Route::post('/dashboard', 'storeProduct')->name('product.store');
-
     Route::get('/product/edit/{id}', 'edit')->name('edit');
     Route::put('/product/{id}', 'update')->name('update');
     Route::delete('/product/{id}', 'destroy')->name('destroy');
-
     Route::get('/product/{product_id}', [OrderController::class,'show'])->name('show');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/notification/{transaction_id}', [OrderController::class, 'shownotifiction'])->name('notification.show');
+    Route::post('/notification/{transaction_id}', [OrderController::class, 'processNotification'])->name('notification.process');
 });
 
 //買い手グループ化
@@ -94,6 +107,10 @@ Route::prefix('buyer')
     Route::get('/dashboard', [ProductController::class,'dashboard'])->name('dashboard');
     Route::get('/bids/{product_id}', [ProductController::class, 'bids'])->name('bids');
     Route::post('/bids/{product_id}', [ProductController::class, 'storeBid'])->name('bids.store');
+    Route::get('/deposit/{transaction_id}', [ProductController::class, 'showdeposit'])->name('deposit.show');
+    Route::post('/deposit/{transaction_id}', [ProductController::class, 'processDeposit'])->name('deposit.process');
+    Route::get('/check/{transaction_id}',[ProductController::class, 'showcheck'])->name('check.show');
+    Route::post('/check/{transaction_id}', [ProductController::class, 'processCheck'])->name('check.process');
 });
 
 
