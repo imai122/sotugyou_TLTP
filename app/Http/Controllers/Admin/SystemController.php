@@ -17,25 +17,12 @@ class SystemController extends Controller
     public function index(Request $request)
     {
         $keyword = $request->input('name');
-        $activeTab = session('tab', $request->input('tab', 'admin.shop'));
-        // $query = YIC_user::query();
-        $shop_query = YIC_user::where('role', 2);
-        $order_query = YIC_user::where('role', 3);
-        $buyer_query = YIC_user::where('role', 4);
+        $query = YIC_user::whereIn('role', [2,3,4]);
 
       if (!empty($keyword)) {
-            if ($activeTab == 'admin.shop') {
-                $shop_query->where('name', 'LIKE', '%' . $keyword . '%');
-            } elseif ($activeTab == 'order') {
-                $order_query->where('name', 'LIKE', '%' . $keyword . '%');
-            } elseif ($activeTab == 'buyer') {
-                $buyer_query->where('name', 'LIKE', '%' . $keyword . '%');
-            }
-        }
-
-        $yic_users = $shop_query->get()
-            ->merge($order_query->get())
-            ->merge($buyer_query->get());
+            $query->where('name', 'LIKE', '%' . $keyword . '%');
+      }
+        $yic_users = $query->get();
 
         return view('admin/system/dashboard', compact('yic_users'));
     }

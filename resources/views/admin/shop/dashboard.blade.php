@@ -1,172 +1,205 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ショップ管理者ダッシュボード</title>
-</head>
-<body>
+<x-shop>
+
     <h1>ショップ管理者ダッシュボード</h1>
-    <style>
-    .tab-button { display: inline-block; cursor: pointer; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    </style>
 
-    
-
-       @if (session('success'))
-        <div style="color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; padding: 12px; margin: 10px; border-radius: 4px; font-weight: bold;">
+    {{-- 通知メッセージ --}}
+    @if (session('success'))
+        <div style="color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-weight: bold;">
             ✅ {{ session('success') }}
         </div>
-        @endif
+    @endif
 
-
-        @if (session('error'))
-        <div style="color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin: 10px; border-radius: 4px; font-weight: bold;">
+    @if (session('error'))
+        <div style="color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-weight: bold;">
             ⚠️ {{ session('error') }}
         </div>
-        @endif
+    @endif
 
-      <button class="tab-button active" onclick="openTab(event, 'bids-product')">入札情報</button>
-      <button class="tab-button" onclick="openTab(event, 'product')">商品情報</button>
-      <button class="tab-button" onclick="openTab(event, 'transaction-detail')">取引明細</button>
-     
-       <div id="bids-product" class="tab-content">
-            <h2>入札情報</h2>
-            <div>
-                <label>検索</label>
-                <input type="text" name="bidder_id">
-                <input type="button" value="検索">
-            </div>
+    {{-- 💡 タブボタンエリア --}}
+    <div class="tab-navigation">
+        <button class="tab-button" id="btn-bids-product" onclick="openTab(event, 'bids-product')">入札情報</button>
+        <button class="tab-button" id="btn-product" onclick="openTab(event, 'product')">商品情報</button>
+        <button class="tab-button" id="btn-transaction-detail" onclick="openTab(event, 'transaction-detail')">取引明細</button>
+    </div>
 
-            <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc">
-                <span style="width: 150px;">名前</span>
-                <span style="width: 150px;">買い手ID</span>
-                <span style="width: 150px;">商品名</span>
-                <span style="width: 150px;">商品ID</span>
-                <span style="width: 150px;">商品コメント</span>
-                <span style="width: 150px;">入札金額</span>
-            </div>
-
-            @foreach ($bids as $bid)
-            <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc;">
-                <span style="width: 150px;">{{ $bid->yic_users->name }}</span>
-                <span style="width: 150px;">{{ $bid->yic_users->user_id }}</span>
-                <span style="width: 150px;">{{ $bid->products->product_name ?? '不明'}}</span>
-                <span style="width: 150px;">{{ $bid->product_id }}</span>
-                <span style="width: 150px;">{{ $bid->products->comment ?? 'なし'}}</span>
-                <span style="width: 150px;"> {{ $bid->bid_amount}}円</span>
-            </div>
-            @endforeach
-       </div>
-
-       
-       <div id="product" class="tab-content">
-        <h2>商品情報</h2>
-        <div>
+    {{-- 💡 タブ1: 入札情報 --}}
+    <div id="bids-product" class="tab-content">
+        <h2>入札情報 (買い手)</h2>
+        <form action="{{ route('admin.shop.dashboard') }}" method="GET" class="search-box">
+        <input type="hidden" name="tab" value="bids-product">
             <label>検索</label>
-            <input type="text" name="product_id">
-            <input type="button" value="検索">
-        </div>
+            <input type="text" name="bidder_id" value="{{ request('bidder_id') }}" placeholder="名前で検索">
+            <input type="submit" value="検索">
+            <a href="{{ route('admin.shop.dashboard', ['tab' => 'bids-product']) }}">クリア</a>
+        </form>
 
-        <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc">
-            <span style="width: 150px;">名前</span>
-            <span style="width: 150px;">出品者ID</span>
-            <span style="width: 150px;">商品名</span>
-            <span style="width: 150px;">商品ID</span>
-            <span style="width: 150px;">商品コメント</span>
-            <span style="width: 150px;">落札希望価格</span>
-            <span style="width: 150px;">落札期限</span>
-       </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>名前</th>
+                    <th>買い手ID</th>
+                    <th>商品名</th>
+                    <th>商品ID</th>
+                    <th>商品コメント</th>
+                    <th>入札金額</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($bids as $bid)
+                    <tr>
+                        <td>{{ $bid->yic_users->name }}</td>
+                        <td>{{ $bid->yic_users->user_id }}</td>
+                        <td>{{ $bid->products->product_name ?? '不明'}}</td>
+                        <td>{{ $bid->product_id }}</td>
+                        <td>{{ $bid->products->comment ?? 'なし'}}</td>
+                        <td><strong>{{ number_format($bid->bid_amount) }}円</strong></td>
+                    </tr>
+             @empty
+            <tr>
+            <td colspan="8" style="text-align: center; padding: 20px; color: #888;">
+                該当する商品情報はありません。
+            </td>
+        </tr>
+    @endforelse
+            </tbody>
+        </table>
+    </div>
 
-       @foreach ($products as $product)
-       <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc;">
-       <span style="width: 150px;">{{ $product->yic_users->name }}</span>
-       <span style="width: 150px;">{{ $product->yic_users->user_id }}</span>
-       <span style="width: 150px;">{{ $product->product_name }}</span>
-       <span style="width: 150px;">{{ $product->product_id }}</span>
-       <span style="width: 150px;">{{ $product->comment }}</span>
-       <span style="width: 150px;">{{ $product->wish_price }}円</span>
-       <span style="width: 150px;">{{ $product->end_date }}</span>
-      <a href="{{ route('admin.shop.edit', ['product_id' => $product->product_id]) }}">
-       <button>修正</button>
-      </a>
+    {{-- 💡 タブ2: 商品情報 --}}
+    <div id="product" class="tab-content">
+    <h2>商品情報 (出品者)</h2>
+    <form action="{{ route('admin.shop.dashboard') }}" method="GET" class="search-box">
+    <input type="hidden" name="tab" value="product">
+    <label>検索</label>
+    <input type="text" name="product_id" value="{{ request('product_name') }}" placeholder="商品名で検索">
+    <input type="submit" value="検索"> 
+    <a href="{{ route('admin.shop.dashboard', ['tab' => 'product']) }}">クリア</a>
+</form>
 
-      <form action="{{ route('admin.shop.destroy',  ['product_id' =>$product->product_id]) }}" method="POST">
-       @csrf
-       @method('DELETE')
-      <input type="submit" value="削除">
-      </form>
-       </div>
-       @endforeach
-       </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>名前</th>
+                    <th>出品者ID</th>
+                    <th>商品名</th>
+                    <th>商品ID</th>
+                    <th>商品コメント</th>
+                    <th>落札希望価格</th>
+                    <th>落札期限</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($products as $product)
+                    <tr>
+                        <td>{{ $product->yic_users->name }}</td>
+                        <td>{{ $product->yic_users->user_id }}</td>
+                        <td>{{ $product->product_name }}</td>
+                        <td>{{ $product->product_id }}</td>
+                        <td>{{ $product->comment }}</td>
+                        <td>{{ number_format($product->wish_price) }}円</td>
 
-       <div id="transaction-detail" class="tab-content">
+                        <td>{{ \Carbon\Carbon::parse($product->end_date)->format('Y年m月d日 H:i') }}</td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="{{ route('admin.shop.edit', ['product_id' => $product->product_id]) }}" class="btn-edit">修正</a>
+                                <form action="{{ route('admin.shop.destroy', ['product_id' => $product->product_id]) }}" method="POST" onsubmit="return confirm('本当に削除しますか？');" style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-delete">削除</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                <tr>
+            <td colspan="8" style="text-align: center; padding: 20px; color: #888;">
+                該当する商品情報はありません。
+            </td>
+        </tr>
+    @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- 💡 タブ3: 取引明細 --}}
+    <div id="transaction-detail" class="tab-content">
         <h2>取引明細（入金通知）</h2>
         
-        <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc; font-weight: bold; padding-bottom: 5px;">
-            <span style="width: 150px;">取引ID</span>
-            <span style="width: 150px;">買い手ID</span>
-            <span style="width: 200px;">商品名</span>
-            <span style="width: 150px;">落札金額</span>
-            <span style="width: 150px;">ステータス</span>
-            
-        </div>
-
-         @foreach ($transactions as $transaction)
-        <div style="display: flex; align-items: center; border-bottom: 1px solid #ccc; padding: 10px 0; "{{ $transaction->status == 2 ? 'background-color: #ffffe0;' : '' }}">
-            <span style="width: 150px;">{{ $transaction->transaction_id }}</span>
-            <span style="width: 150px;">{{ $transaction->buyer_id }}</span>
-            <span style="width: 200px;">{{ $transaction->products?->product_name ?? '不明な商品'}}</span>
-            
-            
-            <span style="width: 150px;">{{ number_format($transaction->winnig_price) }}円</span>
-            
-            <span style="width: 150px;">
-                @if($transaction->status == 1)
-                    未入金
-                @elseif($transaction->status == 2)
-                    <strong style="color: red;">入金確認済み</strong>
-                   <div>
-                    <a href="{{ route('admin.shop.shipping.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: green; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
-                        発送依頼へ
-                    </a>
-                   </div>
-                   @elseif($transaction->status == 4)
-                   <strong style="color: red;">受け取り完了</strong>
-                   <div>
-                    <a href="{{ route('admin.shop.transfer.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: green; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
-                        振り込みへ
-                    </a>
-                   </div>
-                @else
-                    発送済み
-                @endif
-            </span>
-        </div>
-        @endforeach
+        <table>
+            <thead>
+                <tr>
+                    <th>取引ID</th>
+                    <th>買い手ID</th>
+                    <th>商品名</th>
+                    <th>落札金額</th>
+                    <th>ステータス / アクション</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($transactions as $transaction)
+                    {{-- 入金確認済み(status == 2)の場合は背景をハイライトクラスに --}}
+                    <tr class="{{ $transaction->status == 2 ? 'bg-highlight' : '' }}">
+                        <td>{{ $transaction->transaction_id }}</td>
+                        <td>{{ $transaction->buyer_id }}</td>
+                        <td>{{ $transaction->products?->product_name ?? '不明な商品'}}</td>
+                        <td><strong>{{ number_format($transaction->winnig_price) }}円</strong></td>
+                        <td>
+                            @if($transaction->status == 1)
+                                <span class="text-muted">未入金</span>
+                            @elseif($transaction->status == 2)
+                                <span class="text-danger">入金確認済み</span>
+                                <div>
+                                    <a href="{{ route('admin.shop.shipping.show', $transaction->transaction_id) }}" class="btn-action">
+                                        発送依頼へ
+                                    </a>
+                                </div>
+                            @elseif($transaction->status == 4)
+                                <span class="text-danger">受け取り完了</span>
+                                <div>
+                                    <a href="{{ route('admin.shop.transfer.show', $transaction->transaction_id) }}" class="btn-action">
+                                        振り込みへ
+                                    </a>
+                                </div>
+                            @else
+                                <span>発送済み</span>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
-       
-       <script>
+
+    {{-- 💡 タブ切り替え用のスクリプト --}}
+    <script>
         function openTab(evt, tabName) {
+            // 全てのタブコンテンツを非表示にする
             let contents = document.getElementsByClassName("tab-content");
             for (let i = 0; i < contents.length; i++) {
                 contents[i].style.display = "none";
             }
-            // 選択されたコンテンツのみ表示する
+            
+            // 全てのタブボタンから active クラスを消す
+            let buttons = document.getElementsByClassName("tab-button");
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+            }
+            
+            // 選択されたタブを表示し、ボタンに active クラスをつける
             document.getElementById(tabName).style.display = "block";
+            if (evt) {
+                evt.currentTarget.classList.add("active");
+            } else {
+                document.getElementById('btn-' + tabName).classList.add("active");
+            }
         }
 
-        // ページ読み込み時に、指定されたタブを自動で開く
+        // ページ読み込み時の自動初期化
         window.onload = function() {
-            // セッション('tab')、または URLのクエリパラメータ(?tab=...) からタブ名を取得。
-            // どちらもない場合はデフォルトで 'admin.shop' を開く。
             let activeTab = "{{ session('tab', request('tab', 'bids-product')) }}";
-            
-            // タブを開く処理を実行
             openTab(null, activeTab);
         }
-        </script>
-</body>
-</html>
+    </script>
+
+</x-shop>

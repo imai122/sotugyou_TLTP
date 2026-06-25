@@ -29,7 +29,7 @@ class ProductRequest extends FormRequest
             'image_path' => 'nullable|image|mimes:jpeg,png,gif,img|max:10000',
             'comment' => 'required|max:100',
             'wish_price' => 'required|integer',
-            'end_date' => 'required|date',
+            'end_date' => 'required|date|after:now',
             
             //
         ];

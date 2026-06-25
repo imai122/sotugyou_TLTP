@@ -44,10 +44,23 @@ class ProductController extends Controller
 
     public function index(): View//閲覧
     {
-          $data = $this->getSharedData();
+        $products = Product::whereHas('yic_users', function ($query) { 
+        $query->where('role', 3); // 出品者のみ
+    })
 
-        return view('buyer.show', $data);
+    ->where('end_date', '>', now()) 
+        ->get();
+
+        return view('buyer.product_list', compact('products'));
     }
+
+    public function show($product_id): View
+{
+    $product = \App\Models\Product::with('categories')->findOrFail($product_id);
+    
+    
+    return view('buyer.show', compact('product'));
+}
 
      public function create(): View
     {
@@ -58,30 +71,30 @@ class ProductController extends Controller
 
     }
 
-    public function getSharedData(): array
-    {
-        $yic_users = YIC_user::all();
+    // public function getSharedData(): array
+    // {
+    //     $yic_users = YIC_user::all();
 
-        $my_bids = Bid::with('products')//入札商品取得
-            ->where('bidder_id', auth()->id())//自分のbidder_idの情報取得
-            ->orderBy('bid_at', 'desc') // 新しい登録順
-            ->get();
+    //     $my_bids = Bid::with('products')//入札商品取得
+    //         ->where('bidder_id', auth()->id())//自分のbidder_idの情報取得
+    //         ->orderBy('bid_at', 'desc') // 新しい登録順
+    //         ->get();
 
-        // ログインしているユーザーの履歴(商品登録している人のみ)
-        $products = Product::where('seller_id', auth()->id())->get();
+    //     // ログインしているユーザーの履歴(商品登録している人のみ)
+    //     $products = Product::where('seller_id', auth()->id())->get();
 
-        // 閲覧タブ（自分以外の情報）
-        $other_products = Product::with('yic_users') 
-            ->where('seller_id', '!=', auth()->id())
-            ->whereHas('yic_users', function ($query) { 
-                $query->where('role', 3); // 出品者のみ
-            })
-            ->orderBy('created_at', 'desc') // 新しい順
-            ->get();
+    //     // 閲覧タブ（自分以外の情報）
+    //     $other_products = Product::with('yic_users') 
+    //         ->where('seller_id', '!=', auth()->id())
+    //         ->whereHas('yic_users', function ($query) { 
+    //             $query->where('role', 3); // 出品者のみ
+    //         })
+    //         ->orderBy('created_at', 'desc') // 新しい順
+    //         ->get();
 
         
-        return compact('yic_users', 'products', 'other_products' ,'my_bids');
-    }
+    //     return compact('yic_users', 'products', 'other_products' ,'my_bids');
+    // }
 
    public function bids($product_id): View
 {
@@ -120,12 +133,6 @@ public function storeBid(BidRequest $request, $product_id)
     ->with('tab', 'history');
 }
 
-  public function show($product_id): View
-    {
-        $product = \App\Models\Product::with('categories')->findOrFail($product_id);
-        
-        return view('buyer.show', compact('product'));
-    }
       
     public function dashboard()
     {
@@ -134,23 +141,32 @@ public function storeBid(BidRequest $request, $product_id)
         ->orderBy('bid_at', 'desc') // 新しい登録順
         ->get();
 
+        $userId = auth()->id();
+        $loginUserId = auth()->user()->user_id;
+
+        
+
          $other_products = Product::with('yic_users') 
          ->where('seller_id', '!=', auth()->id())
          ->whereHas('yic_users', function ($query) { 
          $query->where('role', 3); // 出品者のみ
          })
+
+         ->where('end_date', '>', now()) 
         ->orderBy('created_at', 'desc') // 新しい順
         ->get();
 
        
         $won_transactions = Transaction::with('products')
-        ->where('buyer_id', auth()->user()->name)
+        ->where('buyer_id', auth()->id())
         // ->where('buyer_id', auth()->user()->user_id)
         // ->where('status',1)
         ->orderBy('won_at', 'desc')
         ->get();
+        $unread_count = $won_transactions->whereIn('status', [1, 3])->count();
 
-        return view('buyer.dashboard', compact('other_products', 'my_bids', 'won_transactions'));
+        $purchase_count = auth()->user()->purchase_count;
+        return view('buyer.dashboard', compact('other_products', 'my_bids', 'won_transactions', 'unread_count', 'purchase_count'));
     }
 
     public function showdeposit($transaction_id)
@@ -196,6 +212,8 @@ public function storeBid(BidRequest $request, $product_id)
             'status' => 4,
             'delivered_at' => now()
     ]);
+
+    auth()->user()->increment('purchase_count');
 
           return redirect()->route('buyer.dashboard')->with('success', '受け取り確認完了しました。');
     }

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('category_id'); 
             $table->foreign('category_id')->references('category_id')->on('categories');
             $table->string('product_name');
-            $table->string('image_path');
+            $table->string('image_path')->nullable();
             $table->string('comment');
             $table->integer('wish_price');
             $table->datetime('end_date');

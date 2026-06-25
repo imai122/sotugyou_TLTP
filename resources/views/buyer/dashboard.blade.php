@@ -1,172 +1,241 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <meta http-equiv="refresh" content="60">
-    <style>
-        .tab-button { display: inline-block; cursor: pointer; padding: 10px; background: #eee; border: 1px solid #ccc; }
-        .tab-content { display: inline-block; padding: 20px; border: 1px solid #ddd; }
-    </style>
-</head>
-<body>
+<x-buyer>
+<div class="buyer-container">
+        {{-- フラッシュメッセージ --}}
+        @if (session('error'))
+            <div class="alert alert-error">⚠️ {{ session('error') }}</div>
+        @endif
 
-    @if (session('error'))
-        <div style="color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin: 10px; border-radius: 4px; font-weight: bold;">
-            ⚠️ {{ session('error') }}
+        @if (session('success'))
+            <div class="alert alert-success">✅ {{ session('success') }}</div>
+        @endif
+        
+        {{-- タブナビゲーション --}}
+        <div class="tab-nav">
+            <button class="tab-button" onclick="openTab(event, 'product-show')">商品閲覧</button>
+            <button class="tab-button" onclick="openTab(event, 'history')">履歴</button>
+            <button class="tab-button" onclick="openTab(event, 'notification')">通知</button>
+            <a href="{{ route('user.logout') }}">ログアウト</a>
         </div>
-    @endif
 
-    @if (session('success'))
-        <div style="color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; padding: 12px; margin: 10px; border-radius: 4px; font-weight: bold;">
-            ✅ {{ session('success') }}
-        </div>
-    @endif
-        <div>
-        <button class="tab-button" onclick="openTab(event, 'product-show')">商品閲覧</button>
-        <button class="tab-button" onclick="openTab(event, 'history')">履歴</button>
-        <button class="tab-button" onclick="openTab(event, 'notification')">通知</button>
-         <div style="margin-top: 20px;">
-        <a href="{{ route('user.logout') }}">ログアウト</a>
-    </div>
-
-      <div id="product-show" class="tab-content">
-        <h2>商品閲覧</h2>
-          <input type="hidden" name="tab" value="order">
-                    <label>検索:</label>
-            <input type="text" name="name" value="{{ request('name') }}">
-            <input type="submit" value="検索">
+        {{-- 💡 タブ1: 商品閲覧 --}}
+        <div id="product-show" class="tab-content">
+            <h2>商品閲覧</h2>
             
-     <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
-            @forelse ($other_products as $item)
-                <div style="width: 200px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    
-                    <a href="{{ route('user.show', $item->product_id) }}" style="display: block; text-decoration: none;">
-                    <div style="text-align: center; height: 150px; display: flex; align-items: center; justify-content: center; background-color: #f9f9f9; margin-bottom: 10px;">
-                        @if($item->image_path)
-                            <img src="{{ asset('storage/' . $item->image_path) }}" alt="商品画像" style="max-width: 100%; max-height: 100%; object-fit: cover;">
-                        @else
-                            <span style="color: #999;">画像なし</span>
-                        @endif
-                    </div>
-                    
-                    <div style="font-size: 14px;">
-                        <div style="font-weight: bold; margin-bottom: 5px; font-size: 16px;">
-                            {{ $item->product_name }}
+            <form action="" method="GET" class="search-box">
+                <input type="hidden" name="tab" value="product-show">
+                <label>検索:</label>
+                <input type="text" name="name" value="{{ request('name') }}" placeholder="商品名で検索">
+                <input type="submit" value="検索">
+            </form>
+            
+            <div class="product-grid">
+                @forelse ($other_products as $item)
+                    @if(\Carbon\Carbon::parse($item->end_date)->isFuture())
+                        <div class="product-card">
+                            <x-product-table :item="$item" />
+                            <a href="{{ route('buyer.bids', $item->product_id) }}" class="btn-bid">入札する</a>
                         </div>
-                        <div style="color: #e60000; font-weight: bold; margin-bottom: 5px;">
-                            {{ number_format($item->wish_price) }} 円
-                        </div>
-                        <div style="color: #666; font-size: 12px; margin-bottom: 5px;">
-                            出品者: {{ $item->yic_users->name }}
-                        </div>
-                        <div style="color: #666; font-size: 12px; margin-bottom: 15px;">
-                            期限: {{ \Carbon\Carbon::parse($item->end_date)->format('Y/m/d H:i') }}
-                        </div>
-                        
-                        <div style="text-align: center;">
-                            <a href="{{ route('buyer.show', $item->product_id) }}" style="display: block; padding: 8px; background-color: #007bff; color: white; text-decoration: none; border-radius: 3px;">詳細を見る</a>
-                        </div>
+                    @endif
+                @empty
+                    <p style="color: #666; width: 100%; text-align: center; padding: 30px;">現在、出品されている商品はありません。</p>
+                @endforelse
+            </div>
+        </div>
 
-                         <div style="text-align: center;">
-                            <a href="{{ route('buyer.bids', ['product_id' => $item->product_id]) }}" style="display: block; padding: 8px; background-color: #007bff; color: white; text-decoration: none; border-radius: 3px;">入札する</a>
-                        </div>
+        {{-- 💡 タブ2: 履歴 --}}
+        <div id="history" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">あなたの入札履歴</h2>
+                <div class="badge-count">
+                    購入回数: <span>{{ $purchase_count ?? 0 }}</span> 回
+                </div>
+            </div>
+
+            <div>
+                <div class="list-header">
+                    <span class="col-150">商品名</span>
+                    <span class="col-150">名前</span>
+                    <span class="col-150">住所</span>
+                    <span class="col-150">入札金額</span>
+                    <span class="col-180">入札日時</span>
+                </div>
+
+                @forelse ($my_bids as $bid)
+                    <div class="list-row">
+                        <span class="col-150">{{ $bid->products->product_name }}</span>
+                        <span class="col-150">{{ auth()->user()->name }}</span>
+                        <span class="col-150">{{ auth()->user()->address }}</span>
+                        <span class="col-150" style="color: #e60000; font-weight: bold;">{{ number_format($bid->bid_amount) }} 円</span>
+                        <span class="col-180" style="color: #666;">{{ \Carbon\Carbon::parse($bid->bid_at)->format('Y/m/d H:i') }}</span>
                     </div>
+                @empty
+                    <div style="padding: 30px 0; color: #666; text-align: center;">まだ入札した履歴はありません。</div>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- 通知 --}}
+        <div id="notification" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">通知一覧</h2>
+            {{-- 💡 振り分け用コンボボックス --}}
+                <select id="notification-filter" onchange="applyFilter()" style="padding: 8px 15px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; cursor: pointer;">
+                <option value="all">すべての通知（未読・既読）</option>
+                <option value="unread">未読のみ</option>
+                <option value="read">既読のみ</option>
+                <option value="deleted">削除フォルダ</option>
+                </select>
+            </div>
+
+            <div id="notification-list">
+            @forelse ($won_transactions as $transaction)
+                <div class="notification-card" data-txn-id="{{ $transaction->transaction_id }}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                   <p style="font-size: 1.1rem; margin-top: 0;">
+                    {{-- ここにJSで 未読/既読/削除済み のバッジが入ります --}}
+                    <span class="badge-area"></span>
+                     商品名: <strong>{{ $transaction->products->product_name }}</strong>
+                    </p>
+                    <p>落札金額: <span style="color: #e60000; font-weight: bold; font-size: 1.1rem;">{{ number_format($transaction->winnig_price) }} 円</span></p>
+                    <p style="color: #666; margin-bottom: 20px;">落札日時: {{ \Carbon\Carbon::parse($transaction->won_at)->format('Y/m/d H:i') }}</p>
+                    </div>
+                            
+                    {{-- ここにJSで「既読にする」「削除」ボタンが入ります --}}
+                    <div class="action-area" style="display: flex; gap: 10px;"></div>
+                    </div>
+                        
+                    {{-- 案内メッセージ --}}
+                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    @if($transaction->status == 1)
+                        <a href="{{ route('buyer.deposit.show', $transaction->transaction_id) }}" class="btn-action btn-green">
+                            入金画面へ進む
+                        </a>
+                    @elseif($transaction->status == 3)
+                        <div class="status-msg-warning">
+                            ⚠️ 商品の発送依頼が完了しました。
+                        </div>
+                        <a href="{{ route('buyer.check.show', $transaction->transaction_id) }}" class="btn-action btn-blue" style="margin-bottom: 15px;">
+                            発送依頼商品について
+                        </a>
+                        <br>
+                        <div class="status-msg-success">
+                            ✅ この取引はすでに入金処理が完了しています。
+                        </div>
+                    @endif
                 </div>
             @empty
-                <p>現在、他の人が出品している商品はありません。</p>
+                <div style="padding: 30px 0; color: #666; text-align: center;">新しい通知はありません。</div>
             @endforelse
         </div>
     </div>
 
-
-   <div id="history" class="tab-content">
-        <h2>あなたの入札履歴</h2>
-
-        <div style="margin-top: 20px;">
-            <div style="display: flex; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 10px; background-color: #f9f9f9;">
-                <span style="width: 150px;">商品名</span>
-                <span style="width: 150px;">名前</span>
-                <span style="width: 150px;">住所</span>
-                <span style="width: 150px;">入札金額</span>
-                <span style="width: 180px;">入札日時</span>
-            </div>
-
-            @forelse ($my_bids as $bid)
-            <div style="display: flex; border-bottom: 1px solid #ccc; padding: 10px 0; align-items: center;">
-                
-                <span style="width: 150px; padding-right: 10px; word-break: break-all;">
-                    {{ $bid->products->product_name  }}
-                </span>
-                
-                <span style="width: 150px;">{{ auth()->user()->name }}</span>
-                <span style="width: 150px;">{{ auth()->user()->address }}</span>
-                
-                <span style="width: 150px; color: #e60000; font-weight: bold;">
-                    {{ number_format($bid->bid_amount) }} 円
-                </span>
-                
-                <span style="width: 180px; color: #666;">
-                    {{ \Carbon\Carbon::parse($bid->bid_at)->format('Y/m/d H:i') }}
-                </span>
-                
-            </div>
-            @empty
-            <div style="padding: 20px 0; color: #666; text-align: center;">
-                まだ入札した履歴はありません。
-            </div>
-            @endforelse
-        </div>
-    </div>
-
-    <div id="notification" class="tab-content">
-        @forelse ($won_transactions as $transaction)
-        <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-        商品名: <strong>{{ $transaction->products->product_name  }}</strong><br>
-        落札金額: {{ number_format($transaction->winnig_price) }} 円<br>
-        落札日時: {{ \Carbon\Carbon::parse($transaction->won_at)->format('Y/m/d H:i') }}
-       @if($transaction->status == 1)
-        
-            <a href="{{ route('buyer.deposit.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: green; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
-                入金画面へ進む
-            </a>
-        @elseif($transaction->status == 3)
-    <div style="padding: 10px; background-color: #fff3cd; color: #856404; font-weight: bold; margin-bottom: 10px;">
-        ⚠️ 商品の発送依頼が完了しました。
-    
-    <a href="{{ route('buyer.check.show', $transaction->transaction_id) }}" style="display:inline-block; padding: 10px 20px; background: #007bff; color: white; font-weight: bold; text-decoration: none; border-radius: 4px;">
-        発送依頼商品について
-    </a>
-</div>
-      
-        <div style="padding: 10px; background-color: #d4edda; color: #155724; font-weight: bold; width: fit-content;">
-            ✅ この取引はすでに入金処理が完了しています。
-        </div>
-        @endif
-        </div>
-        @empty
-        <div style="padding: 20px 0; color: #666;">
-            新しい通知はありません。
-        </div>
-        @endforelse
-    </div>
-    
-    
+    {{-- JavaScript --}}
     <script>
         function openTab(evt, tabName) {
+            // すべてのコンテンツを隠す
             let contents = document.getElementsByClassName("tab-content");
             for (let i = 0; i < contents.length; i++) {
                 contents[i].style.display = "none";
             }
+            
+            // すべてのボタンの active クラスを外す
+            let buttons = document.getElementsByClassName("tab-button");
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+            }
+            
+            // 対象のタブを表示
             document.getElementById(tabName).style.display = "block";
+            
+            // クリックされたボタンを active にする
+            if(evt) {
+                evt.currentTarget.classList.add("active");
+            }
         }
+
+        // ページ読み込み時の処理
         window.onload = function() {
             let activeTab = "{{ session('tab', request('tab', 'product-show')) }}";
-            openTab(null, activeTab);
+            let targetButton = document.querySelector(`.tab-button[onclick*="${activeTab}"]`);
+            
+            // 対象のタブを開く（イベントがない場合は疑似的に渡す）
+            openTab({ currentTarget: targetButton || document.querySelector('.tab-button') }, activeTab);
         }
-</script>
 
-    
-</body>
-</html>
+
+        const storageKey = "notifications_user_{{ auth()->id() }}";
+
+        // ブラウザの記憶を取得する
+        function getNotificationStates() {
+            return JSON.parse(localStorage.getItem(storageKey)) || {};//取得する際に何もなかったら空にする
+        }
+
+        // ブラウザに状態を記憶させる
+        function saveNotificationStates(states) {//既読や未読といった状態を取得(states)
+            localStorage.setItem(storageKey, JSON.stringify(states));//文字として保存する
+        }
+
+        // 「既読」「削除」ボタンを押した時の処理
+        function markNotification(txnId, state) {
+            if (state === 'deleted' && !confirm('削除フォルダに移動しますか？')) return;
+
+            let states = getNotificationStates();
+            states[txnId] = state; // 'read' か 'deleted' を保存
+            saveNotificationStates(states);
+
+            renderNotifications(); // 画面を更新
+        }
+
+        // 画面の表示を最新の状態に切り替える
+        function renderNotifications() {
+            let states = getNotificationStates();
+            let filter = document.getElementById('notification-filter').value;//combobox表示
+            let cards = document.getElementsByClassName('notification-card');
+
+            for (let card of cards) {
+                let txnId = card.getAttribute('data-txn-id');
+                let currentState = states[txnId] || 'unread'; // 記憶がないものは「未読(unread)」
+
+                let badgeArea = card.querySelector('.badge-area');
+                let actionArea = card.querySelector('.action-area');
+
+                // 1. バッジとボタンの書き換え
+                if (currentState === 'deleted') {
+                    badgeArea.innerHTML = '<span style="color: #999; font-weight: bold; margin-right: 5px;">🗑️ 削除済み</span>';
+                    actionArea.innerHTML = ''; // 削除済みの場合はボタンを消す
+                } else if (currentState === 'read') {
+                    badgeArea.innerHTML = '<span style="background-color: #10b981; color: white; font-size: 12px; padding: 3px 8px; border-radius: 10px; margin-right: 5px;">既読</span>';
+                    actionArea.innerHTML = `<button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">削除</button>`;
+                } else { // unread (未読)
+                    badgeArea.innerHTML = '<span style="background-color: #ef4444; color: white; font-size: 12px; padding: 3px 8px; border-radius: 10px; margin-right: 5px;">未読</span>';
+                    actionArea.innerHTML = `
+                        <button onclick="markNotification('${txnId}', 'read')" style="padding: 6px 12px; background: #e2e8f0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">既読にする</button>
+                        <button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">削除</button>
+                    `;
+                }
+
+                // 2. コンボボックスの選択に合わせて 表示/非表示 を切り替え
+                if (filter === 'all') {
+                    card.style.display = (currentState !== 'deleted') ? "block" : "none";
+                } else if (filter === 'unread') {
+                    card.style.display = (currentState === 'unread') ? "block" : "none";
+                } else if (filter === 'read') {
+                    card.style.display = (currentState === 'read') ? "block" : "none";
+                } else if (filter === 'deleted') {
+                    card.style.display = (currentState === 'deleted') ? "block" : "none";
+                }
+            }
+        }
+
+        // コンボボックスを変更した時に呼ばれる
+        function applyFilter() {
+            renderNotifications();
+        }
+
+        // ページが読み込まれた時に一度だけ実行して画面を整える
+        window.addEventListener('DOMContentLoaded', () => {
+            renderNotifications();
+        });
+    </script>
+</x-buyer>

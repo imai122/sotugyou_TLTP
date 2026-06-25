@@ -44,6 +44,8 @@ class OrderController extends Controller
         'user_id' => $data['user_id'],
         'password'      => Hash::make($data['password']),
         'role' => $data['role'],
+        'listing_count'  => 0,
+        'purchase_count' => 0,
         ]);
     return redirect()->route('user.login.index');
 
@@ -51,7 +53,8 @@ class OrderController extends Controller
 
 
      public function storeProduct(ProductRequest $request): RedirectResponse
-     {$validated = $request->validated();
+     {
+        $validated = $request->validated();
          
         $products = new Product();
 
@@ -69,7 +72,16 @@ class OrderController extends Controller
        $products->seller_id = auth()->id();
        $products->status = '出品中';
 
+       if ($request->hasFile('image_path')) {
+        // 'products' ディレクトリに保存し、そのパスを取得
+        $path = $request->file('image_path')->store('products', 'public');
+        // データベースにはそのパス（文字列）を保存
+        $products->image_path = $path;
+    }
+
         $products->save();
+
+        auth()->user()->increment('listing_count');
 
         return redirect()->route('user.dashboard', ['tab' => 'history'])
                      ->with('success', '商品を登録しました');
@@ -77,18 +89,26 @@ class OrderController extends Controller
 
 
 
-     public function index(): View
+     public function dashboard(): View
 {
     $userId = auth()->id();
     $loginUserId = auth()->user()->user_id;
 
-    $products = Product::where('seller_id', $userId)->get();
+    $query = Product::where('seller_id', $userId);
+
+    if (request()->filled('name')) {
+        $query->where('product_name', 'LIKE', '%' . request('name') . '%');
+    }
+
+    $products = $query->get();
 
     $other_products = Product::with('yic_users')
         ->where('seller_id', '!=', $userId)
         ->whereHas('yic_users', function ($query) {
             $query->where('role', 3);
         })
+
+        ->where('end_date', '>', now())
         ->orderBy('created_at', 'desc')
         ->get();
 
@@ -106,13 +126,16 @@ class OrderController extends Controller
         })
         ->get();
 
-    
-    return view('user.dashboard', compact('products', 'other_products', 'won_transactions', 'sold_transactions'));
+        $listing_count = $products->count();
+
+        return view('user.dashboard', compact(
+            'products', 
+            'other_products', 
+            'won_transactions', 
+            'sold_transactions', 
+            'listing_count', 
+        ));
 }
-
-
-       
-    
 
     public function edit($id): View
     {

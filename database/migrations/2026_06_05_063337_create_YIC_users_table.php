@@ -23,8 +23,8 @@ return new class extends Migration
             $table->string('phone_number');
             $table->string('email');
             $table->string('bank_account');
-            $table->integer('listing_count')->nullable();
-            $table->integer('purchase_count')->nullable();
+            $table->integer('listing_count')->default(0);
+            $table->integer('purchase_count')->default(0);
             $table->integer('rating')->nullable();
             $table->timestamps();
 

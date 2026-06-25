@@ -18,7 +18,7 @@ class Product extends Model
     public $incrementing = true; 
     // protected $keyType = 'string'; // IDの型が文字列であることを明示
 
-    protected $fillable = ['product_name', 'comment'];
+    protected $fillable = ['product_name', 'comment', 'wish_price', 'product_id'];
 
     public function productId(): Attribute
     {

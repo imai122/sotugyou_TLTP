@@ -10,8 +10,12 @@ use App\Http\Controllers\Order\ProductController;
 use App\Models\YIC_user;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('buyer.product_list');
 });
+
+Route::get('/logout', [AuthController::class, 'logout'])
+    ->name('user.logout') // Bladeファイルで使っている名前に合わせる
+    ->middleware('auth');
 
 
 Route::get('/login', function () {
@@ -35,6 +39,7 @@ Route::prefix('user')
     Route::get('/create', 'create')->name('create');
     Route::post('/create', 'loginstore')->name('procss');
 });
+
 
 
 
@@ -87,15 +92,22 @@ Route::prefix('user')
 ->group(function() {
     // Route::get('/create', 'create')->name('create');
     // Route::post('/create', 'loginstore')->name('procss');
-    Route::get('/dashboard', 'index')->name('dashboard');
+    Route::get('/dashboard', 'dashboard')->name('dashboard');
     Route::post('/dashboard', 'storeProduct')->name('product.store');
     Route::get('/product/edit/{id}', 'edit')->name('edit');
     Route::put('/product/{id}', 'update')->name('update');
     Route::delete('/product/{id}', 'destroy')->name('destroy');
     Route::get('/product/{product_id}', [OrderController::class,'show'])->name('show');
-    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    // Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/notification/{transaction_id}', [OrderController::class, 'shownotifiction'])->name('notification.show');
     Route::post('/notification/{transaction_id}', [OrderController::class, 'processNotification'])->name('notification.process');
+});
+
+Route::prefix('buyer')
+->name('buyer.')
+->group(function() {
+    Route::get('/product_list', [ProductController::class, 'index'])->name('product_list');
+    Route::get('/show/{product_id}', [ProductController::class, 'show'])->name('show');
 });
 
 //買い手グループ化
@@ -103,7 +115,6 @@ Route::prefix('buyer')
 ->name('buyer.')
 ->middleware(['role:buyer'])
 ->group(function() {
-    Route::get('/show/', [ProductController::class,'show'])->name('show');
     Route::get('/dashboard', [ProductController::class,'dashboard'])->name('dashboard');
     Route::get('/bids/{product_id}', [ProductController::class, 'bids'])->name('bids');
     Route::post('/bids/{product_id}', [ProductController::class, 'storeBid'])->name('bids.store');

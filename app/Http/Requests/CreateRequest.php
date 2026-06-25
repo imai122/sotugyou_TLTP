@@ -25,15 +25,16 @@ class CreateRequest extends FormRequest
         return [
             
             'user_id' => 'required|unique:yic_users,user_id',
-            'password' => 'required|max:100',
+            'password' => 'required|min:8|confirmed|regex:/^[A-Z].+$/',
             'name' => 'required|max:100',
             'postal_code' => 'required',
             'phone_number' => 'required',
-            'email' => 'required|max:255',
+            'email' => 'required|max:255|unique:yic_users,email',
             'bank_account' => 'required|max:255',
             'address' => 'required|max:255',
             'role' => ['required', 'integer', 'in:3,4'],
             //
         ];
     }
+    
 }

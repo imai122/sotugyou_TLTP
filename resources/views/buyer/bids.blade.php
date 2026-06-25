@@ -10,13 +10,14 @@
     <h1>登録フォーム</h1>
 
     @if ($errors->any())
-        <div style="color: red; margin-bottom: 20px;">
+        <!-- <div style="color: red; margin-bottom: 20px;">
             <ul>
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-        </div>
+        </div> -->
+        <x-error-messages :errors="$errors" />
     @endif
 
     <form action="{{ route('buyer.bids.store', $product->product_id) }}" method="POST">
