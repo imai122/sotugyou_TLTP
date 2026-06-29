@@ -30,4 +30,14 @@ class Bid extends Model
     {
         return $this->belongsTo(YIC_user::class, 'bidder_id');
     }
+
+    public function destroyBid($bid_id)
+{
+    $bid = Bid::findOrFail($bid_id);
+    
+    // 必要に応じてここでステータスチェック（入札済みなら削除不可など）
+    $bid->delete();
+
+    return redirect()->route('admin.shop.dashboard')->with('success', '入札情報を削除しました。');
+}
 }

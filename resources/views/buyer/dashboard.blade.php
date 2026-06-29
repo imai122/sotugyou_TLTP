@@ -2,11 +2,11 @@
 <div class="buyer-container">
         {{-- フラッシュメッセージ --}}
         @if (session('error'))
-            <div class="alert alert-error">⚠️ {{ session('error') }}</div>
+            <div class="alert alert-error"> {{ session('error') }}</div>
         @endif
 
         @if (session('success'))
-            <div class="alert alert-success">✅ {{ session('success') }}</div>
+            <div class="alert alert-success"> {{ session('success') }}</div>
         @endif
         
         {{-- タブナビゲーション --}}
@@ -42,10 +42,17 @@
             </div>
         </div>
 
-        {{-- 💡 タブ2: 履歴 --}}
+        {{--タブ2: 履歴 --}}
         <div id="history" class="tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0;">あなたの入札履歴</h2>
+
+                <select onchange="filterHistory(this.value)" style="padding: 5px 10px; cursor: pointer;">
+                    <option value="all">全て表示</option>
+                    <option value="active">出品中のみ</option>
+                    <option value="sold">落札された商品のみ</option>
+                    <option value="unsold">未落札の商品</option>
+                </select>
                 <div class="badge-count">
                     購入回数: <span>{{ $purchase_count ?? 0 }}</span> 回
                 </div>
@@ -58,19 +65,54 @@
                     <span class="col-150">住所</span>
                     <span class="col-150">入札金額</span>
                     <span class="col-180">入札日時</span>
+
+                    <span class="col-150">落札状況</span>
                 </div>
 
                 @forelse ($my_bids as $bid)
-                    <div class="list-row">
+                 @php
+           $isPast = \Carbon\Carbon::parse($bid->products->end_date)->isPast();
+           $rowStatus = 'active'; // デフォルトは出品中
+           if ($bid->products->status === '出品終了' || $isPast) {
+            if (in_array($bid->products->product_id, $won_product_ids)) {
+                $rowStatus = 'sold';   // 落札
+            } else {
+                $rowStatus = 'unsold'; // 未落札
+            }
+        }
+        @endphp
+                   <div class="list-row product-item" data-status="{{ $rowStatus }}">
                         <span class="col-150">{{ $bid->products->product_name }}</span>
                         <span class="col-150">{{ auth()->user()->name }}</span>
                         <span class="col-150">{{ auth()->user()->address }}</span>
                         <span class="col-150" style="color: #e60000; font-weight: bold;">{{ number_format($bid->bid_amount) }} 円</span>
                         <span class="col-180" style="color: #666;">{{ \Carbon\Carbon::parse($bid->bid_at)->format('Y/m/d H:i') }}</span>
+                        <!-- <span class="col-150">{{ $bid->products->status }}</span> -->
+
+                    @if ($bid->products->status === '出品終了')
+                    @if (in_array($bid->product_id, $won_product_ids))
+                    <span style="color: #e53e3e; font-weight: bold; background-color: #fed7d7; padding: 4px 10px; border-radius: 9999px; display: inline-block;">
+                    落札
+                    </span>
+                    @else
+                    <span style="color: #e53e3e; font-weight: bold; background-color: #fed7d7; padding: 4px 10px; border-radius: 9999px; display: inline-block;">
+                    未落札
+                    </span>
+                    @endif
+                    @else
+                    <span style="color: #3182ce; font-weight: bold; background-color: #ebf8ff; padding: 4px 10px; border-radius: 9999px; display: inline-block;">
+                    出品中
+                    </span>
+                    @endif
+                    </span>
                     </div>
                 @empty
                     <div style="padding: 30px 0; color: #666; text-align: center;">まだ入札した履歴はありません。</div>
                 @endforelse
+
+                <div id="history-empty-message" style="display: none; padding: 30px 0; color: #666; text-align: center; font-weight: bold;">
+                    該当する情報はありません。
+                </div>
             </div>
         </div>
 
@@ -88,154 +130,253 @@
             </div>
 
             <div id="notification-list">
+                <div id="js-empty-message" style="display: none; padding: 30px 0; color: #666; text-align: center;">
+                    該当する通知はありません。
+                </div>
             @forelse ($won_transactions as $transaction)
-                <div class="notification-card" data-txn-id="{{ $transaction->transaction_id }}">
+                <div class="notification-card" data-txn-id="{{ $transaction->transaction_id }}" data-status="{{ $transaction->status }}">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
                    <p style="font-size: 1.1rem; margin-top: 0;">
-                    {{-- ここにJSで 未読/既読/削除済み のバッジが入ります --}}
-                    <span class="badge-area"></span>
+                    <!-- <span class="badge-area"></span> -->
+                    <span>aaa</span> <span class="badge-area"></span>
                      商品名: <strong>{{ $transaction->products->product_name }}</strong>
                     </p>
                     <p>落札金額: <span style="color: #e60000; font-weight: bold; font-size: 1.1rem;">{{ number_format($transaction->winnig_price) }} 円</span></p>
                     <p style="color: #666; margin-bottom: 20px;">落札日時: {{ \Carbon\Carbon::parse($transaction->won_at)->format('Y/m/d H:i') }}</p>
                     </div>
                             
-                    {{-- ここにJSで「既読にする」「削除」ボタンが入ります --}}
                     <div class="action-area" style="display: flex; gap: 10px;"></div>
                     </div>
                         
                     {{-- 案内メッセージ --}}
+                       @if($transaction->status == 1)
                     <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    @if($transaction->status == 1)
+                 
                         <a href="{{ route('buyer.deposit.show', $transaction->transaction_id) }}" class="btn-action btn-green">
                             入金画面へ進む
                         </a>
+                    </div>
+
+                        @elseif($transaction->status == 2)
+                       {{-- 入金が完了している場合（status 2, 3, 5などはすべてここを通る） --}}
+                      <!-- <div class="status-msg-success" style="color: #155724; font-weight: bold; margin-bottom: 10px;"> -->
+                         <div style="background-color: #d4edda; padding: 10px; border-radius: 6px; border: 1px solid #c3e6cb;">
+                        <div style="color: #155724; font-weight: bold; margin-bottom: 10px; font-size: 0.95rem;">
+                         入金が完了しました！管理者に通知済みです。発送されるまで少々お待ちください。
+                         </div>
+                         </div>
+                         
                     @elseif($transaction->status == 3)
-                        <div class="status-msg-warning">
-                            ⚠️ 商品の発送依頼が完了しました。
+                        <div style="background-color: #d4edda; padding: 10px; border-radius: 6px; border: 1px solid #c3e6cb;">
+                        <div style="color: #155724; font-weight: bold; margin-bottom: 10px; font-size: 0.95rem;">
+            
+                             商品の発送依頼が完了しました。
                         </div>
                         <a href="{{ route('buyer.check.show', $transaction->transaction_id) }}" class="btn-action btn-blue" style="margin-bottom: 15px;">
                             発送依頼商品について
                         </a>
-                        <br>
-                        <div class="status-msg-success">
-                            ✅ この取引はすでに入金処理が完了しています。
                         </div>
-                    @endif
-                </div>
-            @empty
+                        
+                        @elseif($transaction->status == 5)
+                        <div style="background-color: #d4edda; padding: 10px; border-radius: 6px; border: 1px solid #c3e6cb;">
+                        <div style="color: #155724; font-weight: bold; margin-bottom: 10px; font-size: 0.95rem;">
+                        取引終了しました。落札おめでとうございます。
+                         </div>
+                        
+                         
+                         
+                        <!-- <br> -->
+                        <!-- <div style="color: #155724;">
+                            ✅ この取引はすでに入金処理が完了しています。
+                        </div> -->
+                        </div>
+                    </div>
+                        @endif
+                    
+                    </div>
+                
+                 
+                  @empty
                 <div style="padding: 30px 0; color: #666; text-align: center;">新しい通知はありません。</div>
             @endforelse
+
+            <div id="js-empty-message" style="display: none; padding: 30px 0; color: #666; text-align: center; font-weight: bold;">
+            該当する通知はありません。
         </div>
-    </div>
+            </div>
+        </div>
+</div> {{-- /buyer-container --}}
 
     {{-- JavaScript --}}
+ 
+
+
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let activeTab = "{{ session('tab', request('tab', 'product-show')) }}";
+            let targetButton = document.querySelector(`.tab-button[onclick*="${activeTab}"]`);
+            
+            openTab({ currentTarget: targetButton || document.querySelector('.tab-button') }, activeTab);
+            
+            renderNotifications();
+        });
+
         function openTab(evt, tabName) {
-            // すべてのコンテンツを隠す
-            let contents = document.getElementsByClassName("tab-content");
-            for (let i = 0; i < contents.length; i++) {
-                contents[i].style.display = "none";
-            }
+            let contents = document.querySelectorAll(".tab-content");
+            contents.forEach(content => content.style.display = "none");
             
-            // すべてのボタンの active クラスを外す
-            let buttons = document.getElementsByClassName("tab-button");
-            for (let i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove("active");
-            }
+            let buttons = document.querySelectorAll(".tab-button");
+            buttons.forEach(button => button.classList.remove("active"));
             
-            // 対象のタブを表示
-            document.getElementById(tabName).style.display = "block";
+            let targetTab = document.getElementById(tabName);
+            if (targetTab) targetTab.style.display = "block";
             
-            // クリックされたボタンを active にする
-            if(evt) {
+            if(evt && evt.currentTarget) {
                 evt.currentTarget.classList.add("active");
             }
         }
 
-        // ページ読み込み時の処理
-        window.onload = function() {
-            let activeTab = "{{ session('tab', request('tab', 'product-show')) }}";
-            let targetButton = document.querySelector(`.tab-button[onclick*="${activeTab}"]`);
-            
-            // 対象のタブを開く（イベントがない場合は疑似的に渡す）
-            openTab({ currentTarget: targetButton || document.querySelector('.tab-button') }, activeTab);
-        }
+        const storageKey = "notifications_user_{{ auth()->id() ?? 'guest' }}";
 
-
-        const storageKey = "notifications_user_{{ auth()->id() }}";
-
-        // ブラウザの記憶を取得する
         function getNotificationStates() {
-            return JSON.parse(localStorage.getItem(storageKey)) || {};//取得する際に何もなかったら空にする
+            try {
+                let data = localStorage.getItem(storageKey);//ログインしている今の情報取得
+                return data ? JSON.parse(data) : {};//ある場合に出力、ない場合は何も出さない
+            } catch (e) {
+                return {};
+            }
         }
 
-        // ブラウザに状態を記憶させる
-        function saveNotificationStates(states) {//既読や未読といった状態を取得(states)
-            localStorage.setItem(storageKey, JSON.stringify(states));//文字として保存する
+
+        function saveNotificationStates(states) {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(states));
+            } catch (e) {
+                console.error("保存失敗", e);
+            }
         }
 
-        // 「既読」「削除」ボタンを押した時の処理
+
         function markNotification(txnId, state) {
+            let states = getNotificationStates();
             if (state === 'deleted' && !confirm('削除フォルダに移動しますか？')) return;
 
-            let states = getNotificationStates();
-            states[txnId] = state; // 'read' か 'deleted' を保存
-            saveNotificationStates(states);
+          
+            if (state === 'permanently_delete') {
+            if (!confirm('本当にこの通知を一覧から削除しますか？')) return;
 
-            renderNotifications(); // 画面を更新
+            delete states[txnId]; 
+           saveNotificationStates(states);
+           renderNotifications();
+           return;
+}
+
+            states[txnId] = state;
+            saveNotificationStates(states);
+            renderNotifications();
         }
 
-        // 画面の表示を最新の状態に切り替える
-        function renderNotifications() {
-            let states = getNotificationStates();
-            let filter = document.getElementById('notification-filter').value;//combobox表示
-            let cards = document.getElementsByClassName('notification-card');
 
-            for (let card of cards) {
+        function renderNotifications() {//画面の最新状態更新
+            let states = getNotificationStates();//statesに取得情報保存
+            let filterElement = document.getElementById('notification-filter');//comboboxの取得
+            let filter = filterElement ? filterElement.value : 'all';//
+            let cards = document.querySelectorAll('.notification-card');
+            
+            let visibleCount = 0; 
+
+            cards.forEach(card => {
                 let txnId = card.getAttribute('data-txn-id');
-                let currentState = states[txnId] || 'unread'; // 記憶がないものは「未読(unread)」
+                let status = parseInt(card.getAttribute('data-status')) || 0;
+                let currentState = states[txnId] || 'unread';
 
                 let badgeArea = card.querySelector('.badge-area');
                 let actionArea = card.querySelector('.action-area');
+                let canDelete = (status >= 5);
 
-                // 1. バッジとボタンの書き換え
                 if (currentState === 'deleted') {
                     badgeArea.innerHTML = '<span style="color: #999; font-weight: bold; margin-right: 5px;">🗑️ 削除済み</span>';
-                    actionArea.innerHTML = ''; // 削除済みの場合はボタンを消す
+
+                actionArea.innerHTML = `
+                <button onclick="markNotification('${txnId}', 'permanently_delete')" 
+                        style="padding: 6px 12px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    完全に削除
+                </button>`;
                 } else if (currentState === 'read') {
                     badgeArea.innerHTML = '<span style="background-color: #10b981; color: white; font-size: 12px; padding: 3px 8px; border-radius: 10px; margin-right: 5px;">既読</span>';
-                    actionArea.innerHTML = `<button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">削除</button>`;
-                } else { // unread (未読)
+                    if (canDelete) {
+                        actionArea.innerHTML = `<button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">削除</button>`;
+                    } else {
+                        actionArea.innerHTML = `<span style="color: #999; font-size: 12px; font-weight: bold; margin-top: 5px;">取引中のため削除不可</span>`;
+                    }
+                } else { 
                     badgeArea.innerHTML = '<span style="background-color: #ef4444; color: white; font-size: 12px; padding: 3px 8px; border-radius: 10px; margin-right: 5px;">未読</span>';
+                    let deleteBtnHtml = canDelete 
+                        ? `<button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🗑️️削除</button>`
+                        : `<span style="color: #999; font-size: 12px; font-weight: bold; margin-left: 10px; line-height: 30px;">取引中のため削除不可</span>`;
                     actionArea.innerHTML = `
                         <button onclick="markNotification('${txnId}', 'read')" style="padding: 6px 12px; background: #e2e8f0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">既読にする</button>
-                        <button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">削除</button>
+                        ${deleteBtnHtml}
                     `;
                 }
 
-                // 2. コンボボックスの選択に合わせて 表示/非表示 を切り替え
+                let isVisible = false;
                 if (filter === 'all') {
-                    card.style.display = (currentState !== 'deleted') ? "block" : "none";
-                } else if (filter === 'unread') {
-                    card.style.display = (currentState === 'unread') ? "block" : "none";
-                } else if (filter === 'read') {
-                    card.style.display = (currentState === 'read') ? "block" : "none";
-                } else if (filter === 'deleted') {
-                    card.style.display = (currentState === 'deleted') ? "block" : "none";
+                    isVisible = (currentState !== 'deleted');
+                } else {
+                    isVisible = (currentState === filter);
+                }
+
+                if (isVisible) {//isVisibleで画面に表示するか
+                    card.style.display = "block";
+                    visibleCount++; // 💡 表示されたらカウントを増やす
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+
+            // 💡 すべて隠れた時に「該当する通知はありません」を出す処理
+            let jsEmptyMsg = document.getElementById('js-empty-message');
+            if (jsEmptyMsg) {
+                if (cards.length > 0 && visibleCount === 0) {
+                    jsEmptyMsg.style.display = "block"; 
+                } else {
+                    jsEmptyMsg.style.display = "none";  
                 }
             }
         }
 
-        // コンボボックスを変更した時に呼ばれる
         function applyFilter() {
             renderNotifications();
         }
 
-        // ページが読み込まれた時に一度だけ実行して画面を整える
-        window.addEventListener('DOMContentLoaded', () => {
-            renderNotifications();
-        });
+         function filterHistory(selectedValue) {
+            // 画面内のすべての「商品行（product-item）」を取得
+            const items = document.querySelectorAll('.product-item');
+
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                // 「すべて表示」が選ばれているか、行の目印（data-status）が選択されたものと一致する場合
+                if (selectedValue === 'all' || item.getAttribute('data-status') === selectedValue) {
+                    item.style.display = 'flex'; // 表示する
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none'; // 一致しないものは隠す
+                }
+            });
+
+            let emptyMsg = document.getElementById('history-empty-message');
+            if (emptyMsg) {
+                // 商品が元々1件以上あるのに、表示件数が0になってしまったらメッセージを出す
+                if (items.length > 0 && visibleCount === 0) {
+                    emptyMsg.style.display = "block"; 
+                } else {
+                    emptyMsg.style.display = "none";  
+                }
+            }
+}
     </script>
 </x-buyer>

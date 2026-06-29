@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
+
 class Product extends Model
 {
     //
@@ -45,6 +47,13 @@ class Product extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class, 'product_id', 'product_id');
+    }
+
+    public static function updateExpiredStatus()
+    {
+        return self::where('status', '出品中')
+        ->where('end_date', '<', Carbon::now())
+        ->update(['status' => '出品終了']);
     }
 
 //     protected static function boot()

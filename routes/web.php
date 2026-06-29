@@ -82,6 +82,8 @@ Route::prefix('admin/shop')
     Route::post('/shipping/{transaction_id}', [ShopController::class, 'processShipping'])->name('shipping.process');
     Route::get('/transfer/{transaction_id}', [ShopController::class, 'showtransfer'])->name('transfer.show');
     Route::post('/transfer/{transaction_id}', [ShopController::class, 'processTransfer'])->name('transfer.process');
+    Route::delete('/admin/shop/bid/{bid_id}', [App\Http\Controllers\Admin\ShopController::class, 'destroyBid'])->name('admin.shop.bid.destroy');
+Route::patch('/admin/shop/bid/{bid_id}', [App\Http\Controllers\Admin\ShopController::class, 'updateBid'])->name('admin.shop.bid.update');
 });
 
 //出品者グループ化

@@ -51,21 +51,74 @@ class ShopController extends Controller
          return view('admin.shop.edit', compact('products'));
      }
 
-     public function update(Request $request, $product_id)
+     public function update(Request $request, $product_id )
      {
-         $products = Product::findOrFail($product_id);
-         $products->update($request->only(['product_name', 'comment', 'product_id']));
-         return redirect()->route('admin.shop.dashboard')
-         ->with('success', '更新しました。');
+     $products = Product::findOrFail($product_id);
+    $isCompleted = $products->transactions()->where('status', 5)->exists();
+
+    if ($isCompleted) {
+        return redirect()->back()->with('error', '取引完了のため、修正できません。');
+    }
+    
+    $products->update($request->only(['product_name', 'comment']));
+    return redirect()->route('admin.shop.dashboard')->with('success', '更新しました。');
+}
+
+// ShopController.php の destroy メソッド
+public function destroy($product_id): RedirectResponse
+{
+    $product = Product::findOrFail($product_id);
+    
+    // ステータス5の取引が「存在する」かチェック
+    $isCompleted = $product->transactions()->where('status', 5)->exists();
+
+    if ($isCompleted) {
+        return redirect()->back()->with('error', '取引完了のため、削除できません。');
+    }
+
+    $product->delete();
+    return redirect()->route('admin.shop.dashboard')->with('success', '削除しました。');
      }   
      
-     public function destroy ($product_id): RedirectResponse
-     {
-        $products = Product::findOrFail($product_id);
-        $products->delete();
-        return redirect()->route('admin.shop.dashboard')
-        ->with('error', '削除しました。');
-     }
+//      public function destroy ($product_id): RedirectResponse
+//      {
+//         $products = Product::findOrFail($product_id);
+//         $transaction = $products->transaction;
+//         if ($transaction && $transaction->status == 5) {
+//         return redirect()->back()->with('error', '取引完了のため、削除できません。');
+//     }
+//         $products->delete();
+//         return redirect()->route('admin.shop.dashboard')
+//         ->with('error', '削除しました。');
+//      }
+
+
+     public function destroyBid($bid_id)
+{
+    $bid = Bid::findOrFail($bid_id);
+    
+    // 取引が存在し、かつステータスが5の場合は削除不可
+    if ($bid->products->transaction && $bid->products->transaction->status == 5) {
+        return redirect()->back()->with('error', '取引完了のため、入札情報の削除はできません。');
+    }
+
+    $bid->delete();
+    return redirect()->route('admin.shop.dashboard', ['tab' => 'bids-product'])->with('success', '入札情報を削除しました。');
+}
+
+public function updateBid(Request $request, $bid_id)
+{
+    $bid = Bid::findOrFail($bid_id);
+
+    // 取引が存在し、かつステータスが5の場合は編集不可
+    if ($bid->products->transaction && $bid->products->transaction->status == 5) {
+        return redirect()->back()->with('error', '取引完了のため、入札情報の修正はできません。');
+    }
+
+    // 入札金額の更新など
+    $bid->update($request->only(['bid_amount']));
+    return redirect()->route('admin.shop.dashboard', ['tab' => 'bids-product'])->with('success', '入札情報を更新しました。');
+}
 
      public function sendContact (Request $request, $product_id)
      {

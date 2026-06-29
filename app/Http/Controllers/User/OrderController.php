@@ -91,6 +91,7 @@ class OrderController extends Controller
 
      public function dashboard(): View
 {
+    Product::updateExpiredStatus();
     $userId = auth()->id();
     $loginUserId = auth()->user()->user_id;
 
@@ -126,6 +127,8 @@ class OrderController extends Controller
         })
         ->get();
 
+        $sold_product_ids = $sold_transactions->pluck('product_id')->toArray();
+
         $listing_count = $products->count();
 
         return view('user.dashboard', compact(
@@ -134,6 +137,7 @@ class OrderController extends Controller
             'won_transactions', 
             'sold_transactions', 
             'listing_count', 
+            'sold_product_ids'
         ));
 }
 

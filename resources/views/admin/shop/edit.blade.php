@@ -1,4 +1,4 @@
-<x-edit>
+<x-create>
     <form action="{{ route('admin.shop.update', $products->product_id) }}" method="POST" class="admin-form">
         @csrf
         @method('PUT')
@@ -31,4 +31,4 @@
             <a href="{{ route('admin.shop.dashboard') }}">キャンセル</a>
         </div>
     </form>
-</x-edit>
+</x-create>

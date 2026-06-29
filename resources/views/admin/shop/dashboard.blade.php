@@ -71,7 +71,7 @@
     <form action="{{ route('admin.shop.dashboard') }}" method="GET" class="search-box">
     <input type="hidden" name="tab" value="product">
     <label>検索</label>
-    <input type="text" name="product_id" value="{{ request('product_name') }}" placeholder="商品名で検索">
+    <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="商品名で検索">
     <input type="submit" value="検索"> 
     <a href="{{ route('admin.shop.dashboard', ['tab' => 'product']) }}">クリア</a>
 </form>
@@ -101,19 +101,24 @@
 
                         <td>{{ \Carbon\Carbon::parse($product->end_date)->format('Y年m月d日 H:i') }}</td>
                         <td>
-                            <div style="display: flex; gap: 5px;">
-                                <a href="{{ route('admin.shop.edit', ['product_id' => $product->product_id]) }}" class="btn-edit">修正</a>
-                                <form action="{{ route('admin.shop.destroy', ['product_id' => $product->product_id]) }}" method="POST" onsubmit="return confirm('本当に削除しますか？');" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-delete">削除</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                <tr>
-            <td colspan="8" style="text-align: center; padding: 20px; color: #888;">
+                           @if($product->transactions->where('status', 5)->isNotEmpty())
+                    {{-- ステータス5の場合は操作不可を表示 --}}
+                    <span style="color: #a0aec0; font-size: 0.9em;">修正・削除不可</span>
+                @else
+                    <div style="display: flex; gap: 5px;">
+                        <a href="{{ route('admin.shop.edit', ['product_id' => $product->product_id]) }}" class="btn-edit">修正</a>
+                        <form action="{{ route('admin.shop.destroy', ['product_id' => $product->product_id]) }}" method="POST" onsubmit="return confirm('本当に削除しますか？');" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn-delete">削除</button>
+                        </form>
+                    </div>
+                @endif
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="9" style="text-align: center; padding: 20px; color: #888;">
                 該当する商品情報はありません。
             </td>
         </tr>
@@ -122,7 +127,7 @@
         </table>
     </div>
 
-    {{-- 💡 タブ3: 取引明細 --}}
+    {{-- 取引明細 --}}
     <div id="transaction-detail" class="tab-content">
         <h2>取引明細（入金通知）</h2>
         
@@ -144,35 +149,62 @@
                         <td>{{ $transaction->buyer_id }}</td>
                         <td>{{ $transaction->products?->product_name ?? '不明な商品'}}</td>
                         <td><strong>{{ number_format($transaction->winnig_price) }}円</strong></td>
-                        <td>
+                        <td id="action-cell-{{ $transaction->transaction_id }}">
                             @if($transaction->status == 1)
                                 <span class="text-muted">未入金</span>
-                            @elseif($transaction->status == 2)
-                                <span class="text-danger">入金確認済み</span>
-                                <div>
-                                    <a href="{{ route('admin.shop.shipping.show', $transaction->transaction_id) }}" class="btn-action">
-                                        発送依頼へ
-                                    </a>
-                                </div>
-                            @elseif($transaction->status == 4)
+                           @elseif($transaction->status == 2)
+                    <span class="text-danger">入金確認済み</span>
+                    <div>
+                      <a href="#" 
+                      id="btn-{{ $transaction->transaction_id }}" 
+                      class="btn-action"
+                     data-txn-id="{{ $transaction->transaction_id }}"
+                     data-url="{{ route('admin.shop.shipping.show', ['transaction_id' => $transaction->transaction_id]) }}"
+                     onclick="handleShipping(this)">
+                    発送依頼へ
+                     </a>
+                    </div>
+                                
+                                  @elseif($transaction->status == 4)
                                 <span class="text-danger">受け取り完了</span>
                                 <div>
                                     <a href="{{ route('admin.shop.transfer.show', $transaction->transaction_id) }}" class="btn-action">
                                         振り込みへ
                                     </a>
                                 </div>
-                            @else
-                                <span>発送済み</span>
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                                     @else
+                                   <span style="color: #6c757d; font-weight: bold;">
+                                  発送依頼完了しました
+                                 </span>
+                                 @endif
+                            
+</td>
+        </tr>
+    @endforeach
+</tbody>
+                          <!-- </div> -->
 
     {{-- 💡 タブ切り替え用のスクリプト --}}
     <script>
+    async function handleShipping(element) {
+    event.preventDefault(); // リンクの遷移を防ぐ
+    
+    // data属性から値を取得
+    const txnId = element.dataset.txnId;
+    const url = element.dataset.url;
+    
+    let cell = document.getElementById('action-cell-' + txnId);
+    
+    // 処理中を表示
+    cell.innerHTML = '<span style="color: #666;">処理中...</span>';
+
+    // サーバー側でステータスを更新
+    await fetch(url);
+
+    // 完了メッセージに書き換え
+    cell.innerHTML = '<span style="color: #6c757d; font-weight: bold;">発送依頼完了しました</span>';
+}
+
         function openTab(evt, tabName) {
             // 全てのタブコンテンツを非表示にする
             let contents = document.getElementsByClassName("tab-content");

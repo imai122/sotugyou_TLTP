@@ -44,6 +44,7 @@ class ProductController extends Controller
 
     public function index(): View//閲覧
     {
+        Product::updatedExpiredStatus();
         $products = Product::whereHas('yic_users', function ($query) { 
         $query->where('role', 3); // 出品者のみ
     })
@@ -71,30 +72,6 @@ class ProductController extends Controller
 
     }
 
-    // public function getSharedData(): array
-    // {
-    //     $yic_users = YIC_user::all();
-
-    //     $my_bids = Bid::with('products')//入札商品取得
-    //         ->where('bidder_id', auth()->id())//自分のbidder_idの情報取得
-    //         ->orderBy('bid_at', 'desc') // 新しい登録順
-    //         ->get();
-
-    //     // ログインしているユーザーの履歴(商品登録している人のみ)
-    //     $products = Product::where('seller_id', auth()->id())->get();
-
-    //     // 閲覧タブ（自分以外の情報）
-    //     $other_products = Product::with('yic_users') 
-    //         ->where('seller_id', '!=', auth()->id())
-    //         ->whereHas('yic_users', function ($query) { 
-    //             $query->where('role', 3); // 出品者のみ
-    //         })
-    //         ->orderBy('created_at', 'desc') // 新しい順
-    //         ->get();
-
-        
-    //     return compact('yic_users', 'products', 'other_products' ,'my_bids');
-    // }
 
    public function bids($product_id): View
 {
@@ -136,6 +113,7 @@ public function storeBid(BidRequest $request, $product_id)
       
     public function dashboard()
     {
+        Product::updateExpiredStatus();
         $my_bids = Bid::with('products')//入札商品取得
         ->where('bidder_id', auth()->id())//自分のbidder_idの情報取得
         ->orderBy('bid_at', 'desc') // 新しい登録順
@@ -163,10 +141,12 @@ public function storeBid(BidRequest $request, $product_id)
         // ->where('status',1)
         ->orderBy('won_at', 'desc')
         ->get();
+
+        $won_product_ids = $won_transactions->pluck('product_id')->toArray();
         $unread_count = $won_transactions->whereIn('status', [1, 3])->count();
 
         $purchase_count = auth()->user()->purchase_count;
-        return view('buyer.dashboard', compact('other_products', 'my_bids', 'won_transactions', 'unread_count', 'purchase_count'));
+        return view('buyer.dashboard', compact('other_products', 'my_bids', 'won_transactions', 'unread_count', 'purchase_count', 'won_product_ids'));
     }
 
     public function showdeposit($transaction_id)
