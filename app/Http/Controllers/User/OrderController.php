@@ -89,7 +89,7 @@ class OrderController extends Controller
 
 
 
-     public function dashboard(): View
+     public function dashboard(Request $request): View
 {
     Product::updateExpiredStatus();
     $userId = auth()->id();
@@ -97,21 +97,26 @@ class OrderController extends Controller
 
     $query = Product::where('seller_id', $userId);
 
-    if (request()->filled('name')) {
-        $query->where('product_name', 'LIKE', '%' . request('name') . '%');
+   
+    if (request()->filled('history')) {
+        $query->where('product_name', 'LIKE', '%' . request('history') . '%');
+    
     }
 
     $products = $query->get();
 
-    $other_products = Product::with('yic_users')
+    $otherProductsQuery = Product::with('yic_users')
         ->where('seller_id', '!=', $userId)
         ->whereHas('yic_users', function ($query) {
             $query->where('role', 3);
         })
 
-        ->where('end_date', '>', now())
-        ->orderBy('created_at', 'desc')
-        ->get();
+        ->where('end_date', '>', now());
+
+        if ($request->filled('name')) {
+            $otherProductsQuery->where('product_name', 'LIKE', '%' . $request->name . '%');
+        }
+        $other_products = $otherProductsQuery->orderBy('created_at', 'desc')->get();
 
     
     // $userId = auth()->user()->user_id;
@@ -131,13 +136,17 @@ class OrderController extends Controller
 
         $listing_count = $products->count();
 
+        $activeTab = $request->input('tab', session('tab', 'product-history'));
+
         return view('user.dashboard', compact(
             'products', 
             'other_products', 
             'won_transactions', 
             'sold_transactions', 
             'listing_count', 
-            'sold_product_ids'
+            'sold_product_ids',
+            'activeTab'
+            
         ));
 }
 
@@ -188,16 +197,12 @@ class OrderController extends Controller
 
     public function processNotification($transaction_id)
     {
-        $transaction = Transaction::where('transaction_id', $transaction_id)
-        ->firstOrFail();
-
-        $transaction->update([
-            'status' => 3,
-            'payment_received_at' => now()
-        ]);
-
-        return redirect()->route('user.dashboard')->with('success', '発送完了しました。');
-    }
+        $transaction = Transaction::where('transaction_id', $transaction_id)->firstOrFail();
+    $transaction->update([
+        'status' => 3 // 発送済に更新
+    ]);
+    return redirect()->route('user.dashboard')->with('success', '発送報告が完了しました。');
+}
 
     }
 

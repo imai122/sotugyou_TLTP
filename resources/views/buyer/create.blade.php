@@ -1,50 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <main>入札ページ</main>
-    <div>
-          <label>名前</label>
-    <input type="text" name="user_id" required>
-    </div>
+<x-buyer>
+    <div class="buyer-container">
+        <h2 style="text-align: center; margin-bottom: 20px;">入札ページ</h2>
 
-    <div>
-        <label>住所</label>
-        <input type="text" name="address" required>
-    </div>
+        <div style="background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto;">
+            
+            <form action="{{ route('buyer.bids.store', $product->product_id) }}" method="POST">
+                @csrf
+                
+                {{-- 入札金額 --}}
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px;">入札金額</label>
+                    <input type="number" name="bid_amount" min="{{ $product->wish_price }}" required 
+                           style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+                    <p style="font-size: 0.85rem; color: #e60000; margin-top: 5px;">
+                        ※希望価格 ({{ number_format($product->wish_price) }}円) 以上で入力してください
+                    </p>
+                </div>
 
-    <div>
-        <label>郵便番号</label>
-        <input type="text" name="postal_code" required>
-    </div>
+                <div style="text-align: center;">
+                    <button type="submit" class="btn-action btn-blue" style="width: 100%; padding: 12px;">登録</button>
+                </div>
+            </form>
 
-    <div>
-        <label>電話番号</label>
-        <input type="text" name="phone_number" required>
+        </div>
     </div>
-
-    <div>
-        <label>メールアドレス</label>
-        <input type="email" name="email" required>
-    </div>
-
-    <div>
-        <label>振込先</label>
-        <input type="text" name="bank_account" required>
-    </div>
-
-    <div>
-        <label>入札金額</label>
-        <input type="
-    </div>
-
-     <div>
-        <input type="submit" value="登録">
-    </div>
-  
-</body>
-</html>
+</x-buyer>

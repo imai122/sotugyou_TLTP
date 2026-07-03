@@ -4,164 +4,171 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>出品者ダッシュボード</title>
-    
-    {{-- 💡 全画面共通の洗練されたCSS --}}
-    <style>
-        /* 1. 全体のベース（上品なグレー背景と見やすいフォント） */
-        body { 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
-            background-color: #f3f4f6; 
-            color: #374151; 
-            margin: 0; 
-            padding: 40px 20px; 
-        }
-
-        /* 画面が広すぎても間延びしないように中央に寄せる */
-        #main-content {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        
-        /* 2. タブのスタイル（最近のアプリ風の下線デザイン） */
-        .tab-button { 
-            display: inline-block; 
-            cursor: pointer; 
-            padding: 12px 24px; 
-            background: transparent; 
-            color: #6b7280;
-            border: none; 
-            border-bottom: 3px solid transparent; /* アクティブ時に下線を出す準備 */
-            font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.3s ease; /* ふわっと色が変わるアニメーション */
-        }
-        .tab-button:hover { 
-            color: #3b82f6; 
-            background-color: #eff6ff;
-            border-radius: 6px 6px 0 0;
-        }
-        .tab-button.active { 
-            color: #3b82f6;
-            border-bottom: 3px solid #3b82f6; /* 青い太線で現在地を強調 */
-        }
-        
-        /* 3. コンテンツエリア（カードのように浮かせる） */
-        .tab-content { 
-            display: none; 
-            padding: 30px; 
-            background: #ffffff; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* 立体的な影 */
-        }
-        
-        /* 4. フォームのスタイル（入力しやすさを向上） */
-        .product-form { max-width: 600px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { 
-            display: block; 
-            margin-bottom: 8px; 
-            font-weight: bold; 
-            color: #4b5563;
-            font-size: 0.95rem;
-        }
-        .form-group input[type="text"], 
-        .form-group input[type="number"], 
-        .form-group select, 
-        .form-group textarea { 
-            width: 100%; 
-            padding: 10px 12px; 
-            border: 1px solid #d1d5db; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 1rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        /* 入力欄をクリックした時に青く光るエフェクト */
-        .form-group input:focus, 
-        .form-group select:focus, 
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-        .form-group textarea { height: 120px; resize: vertical; }
-        
-        /* 5. ボタン（押したくなるような立体感） */
-        .submit-btn { 
-            padding: 12px 24px; 
-            background-color: #3b82f6; 
-            color: white; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 1rem;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-            transition: background-color 0.3s, transform 0.1s;
-        }
-        .submit-btn:hover { 
-            background-color: #2563eb; 
-            transform: translateY(-2px); /* マウスを乗せると少し上に浮く */
-            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.4);
-        }
-        
-        /* 6. メッセージ（より親しみやすい色合いに） */
-        .alert-success { 
-            color: #065f46; background-color: #d1fae5; 
-            padding: 16px; 
-            margin-bottom: 20px; 
-            border-radius: 6px; 
-            border: 1px solid #a7f3d0; 
-            font-weight: bold; 
-        }
-
-        .alert-error { 
-            color: #991b1b; 
-            background-color: #fee2e2; 
-            padding: 16px; 
-            margin-bottom: 20px; 
-            border-radius: 6px; 
-            border: 1px solid #fecaca; 
-            font-weight: bold; 
-        }
-
-        /* 7. 通知バッジ（エラーを修正し、綺麗な丸みに） */
-        .notification-badge {
-            background-color: #ef4444; 
-            color: white;
-            border-radius: 9999px; /* 完全な丸 */
-            padding: 2px 8px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            margin-left: 8px;
-            vertical-align: middle;
-            display: inline-block;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        
-        .notification-card {
-          border: 1px solid #e2e8f0; /* 薄いグレーの枠線 */
-          border-radius: 12px;       /* 角を丸くして優しく */
-          padding: 20px;
-          margin-bottom: 15px;
-          background-color: #ffffff;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* 影をつけて浮かせる */
-          transition: transform 0.2s;
-        }
-
-        .notification-card:hover {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 乗せると少し浮き出る */
-}
-
-       
-    </style>
+  
+    <link rel="stylesheet" href="{{ asset('css/user.css') }}">
 </head>
 <body>
 
     <div id="main-content">
         {{ $slot }}
-    </div>
+    </div> 
 
+    
+    <script>
+        console.log(' JS読み込み完了');
+
+        // タブ切り替え処理
+        document.addEventListener('click', function(e) {
+            const button = e.target.closest('.tab-button');
+            if (button) {
+                const tabName = button.getAttribute('data-tab');
+                window.openTab(e, tabName);
+            }
+        });
+
+        window.openTab = function(evt, tabName) {
+
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabName);
+            window.history.replaceState(null, '', url);
+            // 記憶する
+            localStorage.setItem('lastActiveTab', tabName);
+
+            // 1. 全コンテンツを非表示
+            document.querySelectorAll(".tab-content").forEach(c => {
+                c.classList.remove("active");
+                c.style.display = "none"; 
+            });
+            
+            // 2. 全ボタンのクラスを外す
+            document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+            
+            // 3. 指定タブを表示
+            let targetTab = document.getElementById(tabName);
+            
+            //安全策: もしIDが取れなかったら強制的に product-history を表示
+            if (!targetTab) {
+                console.warn("タブが見つかりません。デフォルトを表示します:", tabName);
+                tabName = 'product-history';
+                targetTab = document.getElementById(tabName);
+            }
+
+            if (targetTab) {
+                targetTab.classList.add("active");
+                targetTab.style.display = "block"; 
+            }
+            
+            // 4. クリックしたボタンをアクティブにする
+            const btn = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+            if (btn) btn.classList.add("active");
+        };
+
+        // --- 通知と履歴の処理 ---
+        const storageKey = "notifications_user_{{ auth()->id() ?? 'guest' }}";
+
+        function getNotificationStates() {
+            try {
+                let data = localStorage.getItem(storageKey);
+                return data ? JSON.parse(data) : {};
+            } catch (e) { return {}; }
+        }
+
+        function saveNotificationStates(states) {
+            try { localStorage.setItem(storageKey, JSON.stringify(states)); } catch (e) { console.error("保存失敗", e); }
+        }
+
+        window.markNotification = function(txnId, state) {
+            let states = getNotificationStates();
+            if (state === 'deleted' && !confirm('削除フォルダに移動しますか？')) return;
+            
+            if (state === 'permanently_delete') {
+                if (!confirm('本当にこの通知を一覧から削除しますか？')) return;
+                delete states[txnId]; 
+                saveNotificationStates(states);
+                window.renderNotifications();
+                return;
+            }
+            
+            states[txnId] = state;
+            saveNotificationStates(states);
+            window.renderNotifications();
+        };
+
+        window.renderNotifications = function() {
+            let states = getNotificationStates();
+            let filterElement = document.getElementById('notification-filter');
+            let filter = filterElement ? filterElement.value : 'all';
+            let cards = document.querySelectorAll('.notification-card');
+            let visibleCount = 0; 
+
+            cards.forEach(card => {
+                let txnId = card.getAttribute('data-txn-id');
+                let status = parseInt(card.getAttribute('data-status')) || 0;
+                let currentState = states[txnId] || 'unread';
+                let badgeArea = card.querySelector('.badge-area');
+                let actionArea = card.querySelector('.action-area');
+                if(!badgeArea || !actionArea) return;
+                
+                let canDelete = (status >= 5);
+
+                if (currentState === 'deleted') {
+                    badgeArea.innerHTML = '<span style="color: #999; font-weight: bold; margin-right: 5px;"> 削除済み</span>';
+                    actionArea.innerHTML = `<button onclick="markNotification('${txnId}', 'permanently_delete')" style="padding: 6px 12px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">完全に削除</button>`;
+                } else if (currentState === 'read') {
+                    badgeArea.innerHTML = '<span style="background-color: #10b981; color: white; font-size: 12px; padding: 3px 8px; border-radius: 10px; margin-right: 5px;">既読</span>';
+                    if (canDelete) {
+                        actionArea.innerHTML = `<button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">削除</button>`;
+                    } else {
+                        actionArea.innerHTML = `<span style="color: #999; font-size: 12px; font-weight: bold; margin-top: 5px;">取引中のため削除不可</span>`;
+                    }
+                } else { 
+                    badgeArea.innerHTML = '<span style="background-color: #ef4444; color: white; font-size: 12px; padding: 3px 8px; border-radius: 10px; margin-right: 5px;">未読</span>';
+                    let deleteBtnHtml = canDelete 
+                        ? `<button onclick="markNotification('${txnId}', 'deleted')" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">削除</button>`
+                        : `<span style="color: #999; font-size: 12px; font-weight: bold; margin-left: 10px; line-height: 30px;">取引中のため削除不可</span>`;
+                    actionArea.innerHTML = `
+                        <button onclick="markNotification('${txnId}', 'read')" style="padding: 6px 12px; background: #e2e8f0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">既読にする</button>
+                        ${deleteBtnHtml}
+                    `;
+                }
+
+                let isVisible = (filter === 'all') ? (currentState !== 'deleted') : (currentState === filter);
+                card.style.display = isVisible ? "block" : "none";
+                if (isVisible) visibleCount++;
+            });
+
+            let jsEmptyMsg = document.getElementById('js-empty-message');
+            if (jsEmptyMsg) jsEmptyMsg.style.display = (cards.length > 0 && visibleCount === 0) ? "block" : "none";
+        };
+
+        window.applyFilter = function() { window.renderNotifications(); };
+
+        window.filterHistory = function(selectedValue) {
+            const items = document.querySelectorAll('.product-item');
+            let visibleCount = 0;
+            items.forEach(item => {
+                if (selectedValue === 'all' || item.getAttribute('data-status') === selectedValue) {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            let emptyMsg = document.getElementById('history-empty-message');
+            if (emptyMsg) emptyMsg.style.display = (items.length > 0 && visibleCount === 0) ? "block" : "none";
+        };
+
+        // ページロード時の初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlTab = urlParams.get('tab');
+            const phpTab = "{{ $activeTab ?? '' }}";
+            const sessionTab = "{{ session('tab', '') }}";
+            
+            const lastTab = urlTab || phpTab || sessionTab || localStorage.getItem('buyerLastTab') || 'product-show';
+            
+            openTab(null, lastTab);
+         });
+     </script>
 </body>
 </html>

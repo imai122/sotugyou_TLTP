@@ -32,10 +32,10 @@ class AdminUserSeeder extends Seeder
         ]);
 
         YIC_user::create([
-        'user_id' => 'shop_admin01',
+        'user_id' => 'admin02',
         'name' => 'ショップ管理者',
         'email' => 'shop@example.com',
-        'password' => Hash::make('p@ssw0rd'),
+        'password' => Hash::make('P@ssw0rd'),
         'role' => 2,
 
         'postal_code' => '000-0000',

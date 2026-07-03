@@ -2,7 +2,9 @@
     <div class="login-wrapper">
         <main class="login-card">
             <h1>ログイン画面</h1>
-            
+
+            <x-flash-message />
+
             @if($errors->any())
                 <x-error-messages :errors="$errors" />
             @endif
@@ -25,9 +27,12 @@
                 </div>
                 
                 <div class="action-links">
-                    <a href="{{ route('user.create') }}">
-                        <button type="button" class="action-btn">新規登録へ</button>
-                    </a>
+                   <a href="{{ route('user.register') }}">
+                   <button type="button" class="action-btn">新規登録へ</button>
+                   </a>
+                   <a href="{{ route('user.reissue.index') }}">
+                   <button type="button" class="action-btn">ID・パスワードをお忘れの方はこちら</button>
+                   </a>
                     </div>
             </form>
         </main>

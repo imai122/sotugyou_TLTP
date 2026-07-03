@@ -2,27 +2,20 @@
 
     <h1>ショップ管理者ダッシュボード</h1>
 
-    {{-- 通知メッセージ --}}
-    @if (session('success'))
-        <div style="color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-weight: bold;">
-            ✅ {{ session('success') }}
-        </div>
-    @endif
+   <x-flash-message />
 
-    @if (session('error'))
-        <div style="color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-weight: bold;">
-            ⚠️ {{ session('error') }}
-        </div>
-    @endif
-
-    {{-- 💡 タブボタンエリア --}}
+    {{-- タブボタンエリア --}}
     <div class="tab-navigation">
         <button class="tab-button" id="btn-bids-product" onclick="openTab(event, 'bids-product')">入札情報</button>
         <button class="tab-button" id="btn-product" onclick="openTab(event, 'product')">商品情報</button>
         <button class="tab-button" id="btn-transaction-detail" onclick="openTab(event, 'transaction-detail')">取引明細</button>
+        <a href="{{ route('user.logout') }}" style="margin-left: auto; color: #ef4444; font-weight: bold; text-decoration: none; padding: 10px;">
+        ログアウト
+    </a>
     </div>
+    
 
-    {{-- 💡 タブ1: 入札情報 --}}
+    {{-- 入札情報 --}}
     <div id="bids-product" class="tab-content">
         <h2>入札情報 (買い手)</h2>
         <form action="{{ route('admin.shop.dashboard') }}" method="GET" class="search-box">
@@ -65,7 +58,7 @@
         </table>
     </div>
 
-    {{-- 💡 タブ2: 商品情報 --}}
+    {{-- 商品情報 --}}
     <div id="product" class="tab-content">
     <h2>商品情報 (出品者)</h2>
     <form action="{{ route('admin.shop.dashboard') }}" method="GET" class="search-box">
@@ -142,7 +135,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($transactions as $transaction)
+                @forelse ($transactions as $transaction)
                     {{-- 入金確認済み(status == 2)の場合は背景をハイライトクラスに --}}
                     <tr class="{{ $transaction->status == 2 ? 'bg-highlight' : '' }}">
                         <td>{{ $transaction->transaction_id }}</td>
@@ -150,61 +143,58 @@
                         <td>{{ $transaction->products?->product_name ?? '不明な商品'}}</td>
                         <td><strong>{{ number_format($transaction->winnig_price) }}円</strong></td>
                         <td id="action-cell-{{ $transaction->transaction_id }}">
-                            @if($transaction->status == 1)
-                                <span class="text-muted">未入金</span>
-                           @elseif($transaction->status == 2)
-                    <span class="text-danger">入金確認済み</span>
-                    <div>
-                      <a href="#" 
-                      id="btn-{{ $transaction->transaction_id }}" 
-                      class="btn-action"
-                     data-txn-id="{{ $transaction->transaction_id }}"
-                     data-url="{{ route('admin.shop.shipping.show', ['transaction_id' => $transaction->transaction_id]) }}"
-                     onclick="handleShipping(this)">
+    @if($transaction->status == 1)
+        <span class="text-muted">落札通知済み</span>
+    
+    @elseif($transaction->status == 2)
+        @if($transaction->payment_received_at)
+            {{-- 発送依頼を既に送っている場合は発送完了として表示 --}}
+            <label style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 6px 14px; border-radius: 9999px; display: inline-block;">
+                 発送完了
+            </label>
+        @else
+            <span class="text-danger">入金済</span>
+            <div>
+                {{-- 管理者が発送依頼ページへ飛ぶためのボタン --}}
+                <a href="{{ route('admin.shop.shipping.show', $transaction->transaction_id) }}" class="btn-action">
                     発送依頼へ
-                     </a>
-                    </div>
-                                
-                                  @elseif($transaction->status == 4)
-                                <span class="text-danger">受け取り完了</span>
-                                <div>
-                                    <a href="{{ route('admin.shop.transfer.show', $transaction->transaction_id) }}" class="btn-action">
-                                        振り込みへ
-                                    </a>
-                                </div>
-                                     @else
-                                   <span style="color: #6c757d; font-weight: bold;">
-                                  発送依頼完了しました
-                                 </span>
-                                 @endif
-                            
-</td>
+                </a>
+            </div>
+        @endif
+        
+    @elseif($transaction->status == 3)
+        <label style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 6px 14px; border-radius: 9999px; display: inline-block;">
+             発送完了
+        </label>
+        
+    @elseif($transaction->status == 4)
+        <span class="text-danger">受け取り確認済</span>
+        <div>
+            {{-- 管理者が振込処理ページへ飛ぶためのボタン --}}
+            <a href="{{ route('admin.shop.transfer.show', $transaction->transaction_id) }}" class="btn-action">
+                振り込みへ
+            </a>
+        </div>
+        
+     @elseif($transaction->status == 5)
+        <span style="color: #2f855a; font-weight: bold;">出品者振込完了</span>
+     @endif
+    </td>
+     
+    </tr>
+    @empty
+    <tr>
+            <td colspan="9" style="text-align: center; padding: 20px; color: #888;">
+                該当する商品情報はありません。
+            </td>
         </tr>
-    @endforeach
+    @endforelse
 </tbody>
-                          <!-- </div> -->
+        </table>
+    </div>
 
-    {{-- 💡 タブ切り替え用のスクリプト --}}
+    {{--タブ切り替え用のスクリプト --}}
     <script>
-    async function handleShipping(element) {
-    event.preventDefault(); // リンクの遷移を防ぐ
-    
-    // data属性から値を取得
-    const txnId = element.dataset.txnId;
-    const url = element.dataset.url;
-    
-    let cell = document.getElementById('action-cell-' + txnId);
-    
-    // 処理中を表示
-    cell.innerHTML = '<span style="color: #666;">処理中...</span>';
-
-    // サーバー側でステータスを更新
-    await fetch(url);
-
-    // 完了メッセージに書き換え
-    cell.innerHTML = '<span style="color: #6c757d; font-weight: bold;">発送依頼完了しました</span>';
-}
-
         function openTab(evt, tabName) {
             // 全てのタブコンテンツを非表示にする
             let contents = document.getElementsByClassName("tab-content");

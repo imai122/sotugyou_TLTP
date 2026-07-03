@@ -3,12 +3,17 @@
     
     <h1>登録ユーザー 一覧情報</h1>
 
+ <x-flash-message />
+   
     <div class="search-box">
         <form action="{{ route('admin.system.dashboard') }}" method="GET">
             <label>名前検索:</label>
             <input type="text" name="name" value="{{ request('name') }}">
             <input type="submit" value="検索">
             <a href="{{ route('admin.system.dashboard') }}">クリア</a>
+            <a href="{{ route('user.logout') }}" style="margin-left: auto; color: #ef4444; font-weight: bold; text-decoration: none; padding: 10px;">
+            ログアウト
+        </a>
         </form>
     </div>  
 

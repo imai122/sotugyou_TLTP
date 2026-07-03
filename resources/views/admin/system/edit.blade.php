@@ -1,4 +1,4 @@
-<x-edit>
+<x-user>
 
     <h1>情報修正</h1>
 
@@ -33,4 +33,4 @@
         
     </form>
     
-</x-edit>
+</x-user>

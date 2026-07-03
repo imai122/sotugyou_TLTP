@@ -111,42 +111,54 @@ public function storeBid(BidRequest $request, $product_id)
 }
 
       
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         Product::updateExpiredStatus();
-        $my_bids = Bid::with('products')//入札商品取得
-        ->where('bidder_id', auth()->id())//自分のbidder_idの情報取得
-        ->orderBy('bid_at', 'desc') // 新しい登録順
-        ->get();
-
         $userId = auth()->id();
         $loginUserId = auth()->user()->user_id;
+        $bidsQuery = Bid::with('products')->where('bidder_id', $userId);
 
+        if ($request->filled('history')) {
+            // リレーション先の「商品名」で絞り込み
+            $bidsQuery->whereHas('products', function($q) use ($request) {
+                $q->where('product_name', 'LIKE', '%' . $request->history . '%');
+            });
+        }
         
+        $my_bids = $bidsQuery->orderBy('bid_at', 'desc')->get();
 
-         $other_products = Product::with('yic_users') 
+
+         $otherProductsQuery = Product::with('yic_users') 
          ->where('seller_id', '!=', auth()->id())
          ->whereHas('yic_users', function ($query) { 
          $query->where('role', 3); // 出品者のみ
          })
+         ->where('end_date', '>', now());
 
-         ->where('end_date', '>', now()) 
-        ->orderBy('created_at', 'desc') // 新しい順
-        ->get();
+        if (request()->filled('name')) {
+        $otherProductsQuery->where('product_name', 'LIKE', '%' . request('name') . '%');
+    
+    }
 
-       
-        $won_transactions = Transaction::with('products')
-        ->where('buyer_id', auth()->id())
+    $other_products = $otherProductsQuery->orderBy('created_at', 'desc')->get();
+
+      
+    $won_transactions = Transaction::with('products')
+    ->where('buyer_id', auth()->id())
         // ->where('buyer_id', auth()->user()->user_id)
         // ->where('status',1)
-        ->orderBy('won_at', 'desc')
-        ->get();
+    ->orderBy('won_at', 'desc')
+    ->get();   
 
-        $won_product_ids = $won_transactions->pluck('product_id')->toArray();
-        $unread_count = $won_transactions->whereIn('status', [1, 3])->count();
+    $won_product_ids = $won_transactions->pluck('product_id')->toArray();
+    $unread_count = $won_transactions->whereIn('status', [1, 3])->count();
+    $purchase_count = auth()->user()->purchase_count;
 
-        $purchase_count = auth()->user()->purchase_count;
-        return view('buyer.dashboard', compact('other_products', 'my_bids', 'won_transactions', 'unread_count', 'purchase_count', 'won_product_ids'));
+    $activeTab = $request->input('tab', 'product-show');
+    
+        return view('buyer.dashboard', 
+        compact(
+            'other_products', 'my_bids', 'won_transactions', 'unread_count', 'purchase_count', 'won_product_ids', 'activeTab'));
     }
 
     public function showdeposit($transaction_id)
@@ -193,10 +205,23 @@ public function storeBid(BidRequest $request, $product_id)
             'delivered_at' => now()
     ]);
 
-    auth()->user()->increment('purchase_count');
+    // auth()->user()->increment('purchase_count');
 
           return redirect()->route('buyer.dashboard')->with('success', '受け取り確認完了しました。');
     }
+
+    public function hideNotification($transaction_id)
+{
+    // 該当する取引を削除（または非表示フラグの更新）
+    $transaction = Transaction::where('transaction_id', $transaction_id)
+        ->where('buyer_id', Auth::user()->user_id) // ログイン中のユーザー本人か確認
+        ->firstOrFail();
+    
+    $transaction->delete(); // 通知自体を削除する場合
+
+    return redirect()->route('buyer.dashboard', ['tab' => 'notification'])
+                     ->with('success', '通知を完全に削除しました。');
+}
 }
 
 

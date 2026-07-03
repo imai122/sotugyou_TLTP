@@ -154,19 +154,24 @@ public function updateBid(Request $request, $bid_id)
           ->where('transaction_id', $transaction_id)
           ->firstOrFail();
 
-          return view('admin.shop.shipping', compact('transaction'));
+        $commissionRate = 0.10;
+        
+        // 手数料を計算（小数点以下は切り捨て）
+        $fee = floor($transaction->winning_price * $commissionRate); 
+        
+        // 振込金額を計算（落札金額 - 手数料）
+        $payoutAmount = $transaction->winning_price - $fee;
+
+          return view('admin.shop.shipping', compact('transaction', 'fee', 'payoutAmount'));
      }
 
      public function processShipping($transaction_id)
      {
-          $transaction = Transaction::with('products')
-          ->where('transaction_id', $transaction_id)
-          ->firstOrFail();
-
-         
-
-          return redirect()->route('admin.shop.dashboard')
-          ->with('success', '発送依頼が完了しました。');
+         $transaction = Transaction::where('transaction_id', $transaction_id)->firstOrFail();
+         $transaction->update([
+        'payment_received_at' => now(), // 「発送依頼を送った日時」として転用
+    ]);
+    return redirect()->route('admin.shop.dashboard')->with('success', '出品者に発送依頼を送信しました。');
      }
 
      public function showtransfer($transaction_id)
@@ -175,12 +180,13 @@ public function updateBid(Request $request, $bid_id)
           ->where('transaction_id', $transaction_id)
           ->firstOrFail();
 
+
           return view('admin.shop.transfer', compact('transaction'));
      }
 
 
 
-     public function processTransfer($transaction_id)
+     public function processTransfer($transaction_id)//商品を10%引いた数
      {
         $transaction = Transaction::where('transaction_id', $transaction_id)
         ->firstOrFail();
@@ -192,9 +198,16 @@ public function updateBid(Request $request, $bid_id)
         'status' => 5,
         'payout_amount' => $payoutAmount,
         'payout_completed_at' => now(), 
+
+    
     ]);
 
+    $buyer = YIC_user::where('user_id', $transaction->buyer_id)->first();
+if ($buyer) {
+    $buyer->increment('purchase_count');
+}
     return redirect()->route('admin.shop.dashboard')->with('success', '振り込み完了しました。');
      }
 }
+
     

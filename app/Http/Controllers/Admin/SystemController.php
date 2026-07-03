@@ -60,8 +60,26 @@ class SystemController extends Controller
     public function destroy($id): RedirectResponse
     {
         $user = YIC_user::findOrFail($id);
+        $products = Product::where('seller_id', $user->user_id)->get();
+
+        foreach ($products as $product) {
+            // 商品を消す前に、その商品に紐づく「取引履歴」を削除
+            Transaction::where('product_id', $product->product_id)->delete();
+            
+            // 商品を消す前に、その商品に対する「入札データ」を削除
+            Bid::where('product_id', $product->product_id)->delete();
+
+            $product->delete();
+        }
+
+        Bid::where('bidder_id', $user->user_id)->delete();
+
+        // このユーザーが「買い手」となっている取引履歴をすべて削除
+        Transaction::where('buyer_id', $user->user_id)->delete();
         $user->delete();
-        return redirect()->route('admin.system.dashboard')->with('message',   'の情報を削除しました。');
+
+
+        return redirect()->route('admin.system.dashboard')->with('message',   '削除しました。');
     }
 
     

@@ -1,0 +1,116 @@
+  body { 
+    font-family: sans-serif; 
+    padding: 20px; 
+    }
+
+
+    .info-box { 
+         border: 1px solid #e0e0e0; 
+         padding: 20px; 
+         margin-bottom: 20px; 
+         border-radius: 8px; 
+         background-color: #f9f9f9;
+    }
+
+    .btn-ship { 
+        padding: 10px 20px; 
+        background: #007bff; 
+        color: white; 
+        border: none; 
+        border-radius: 4px; 
+        cursor: pointer; 
+    }
+
+    /* --- 振込内容確認画面用スタイル --- */
+.transfer-container {
+    max-width: 450px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.transfer-container h2 { 
+    text-align: center; 
+    color: #2d3748; 
+    margin-bottom: 25px; 
+}
+
+.info-group { 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid #edf2f7; 
+    padding-bottom: 15px; 
+}
+
+
+.label { 
+    color: #718096; 
+    font-size: 0.9rem; 
+}
+
+
+.value { 
+    font-size: 1.1rem; 
+    color: #2d3748; 
+    font-weight: bold; 
+}
+
+.payout-box { 
+    background-color: #fff5f5; 
+    padding: 20px; 
+    border-radius: 6px; 
+    text-align: center;
+    border: 1px solid #feb2b2;
+}
+.payout-label { 
+    color: #e53e3e; 
+    font-size: 0.9rem; 
+}
+
+
+.payout-amount { 
+    font-size: 1.8rem; color: #e53e3e; 
+    font-weight: 800; 
+    margin: 5px 0; 
+}
+
+.btn-submit {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background-color: #2f855a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 25px;
+    transition: background 0.2s;
+}
+
+
+.btn-submit:hover { 
+    background-color: #276749; 
+}
+
+/* --- レイアウト調整用クラス --- */
+.container-center {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* 発送依頼・通知用のアクションボタン調整 */
+.action-box { margin-top: 20px; display: inline-block; }
+
+/* 振込内容確認画面の調整（もっと下に） */
+.transfer-container {
+    margin: 80px auto 40px auto; /* 上部の余白を80pxに増やしました */
+}

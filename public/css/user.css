@@ -1,0 +1,412 @@
+/* 1. 全体のベース（上品なグレー背景と見やすいフォント） */
+body { 
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
+    background-color: #f3f4f6; 
+    color: #374151; 
+    margin: 0; 
+    padding: 40px 20px; 
+}
+
+/* 画面が広すぎても間延びしないように中央に寄せる */
+#main-content {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* 2. タブのスタイル（buyer.blade.phpに合わせた青背景デザイン） */
+.tab-button { 
+    background: none; 
+    border: none; 
+    padding: 10px 20px; 
+    font-size: 16px;
+    cursor: pointer; 
+    color: #64748b; 
+    font-weight: bold; 
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.tab-button:hover { 
+    background-color: #f1f5f9; 
+    color: #334155; 
+}
+.tab-button.active { 
+    background-color: #3b82f6; 
+    color: white;
+}
+
+/* 3. コンテンツエリア（カードのように浮かせる） */
+.tab-content.active {
+    display: block !important;
+}
+
+.tab-content { 
+    display: none; 
+    background: #fff; 
+    padding: 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+}
+
+.tab-content h2 { 
+    margin-top: 0; 
+    padding-left: 10px; 
+    border-left: 4px solid #3b82f6; 
+    margin-bottom: 20px; 
+}
+
+.logout-link {
+    margin-left: auto;
+    color: #ef4444;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 10px;
+}
+.logout-link:hover {
+    text-decoration: underline;
+}
+
+/* 4. フォームのスタイル（入力しやすさを向上） */
+.product-form { max-width: 600px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { 
+    display: block; 
+    margin-bottom: 8px; 
+    font-weight: bold; 
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+.form-group input[type="text"], 
+.form-group input[type="number"], 
+.form-group select, 
+.form-group textarea { 
+    width: 100%; 
+    padding: 10px 12px; 
+    border: 1px solid #d1d5db; 
+    border-radius: 6px; 
+    box-sizing: border-box; 
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* 入力欄をクリックした時に青く光るエフェクト */
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.form-group textarea { height: 120px; resize: vertical; }
+
+/* 5. ボタン（押したくなるような立体感） */
+.submit-btn { 
+    padding: 12px 24px; 
+    background-color: #3b82f6; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    transition: background-color 0.3s, transform 0.1s;
+}
+.submit-btn:hover { 
+    background-color: #2563eb; 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.4);
+}
+
+/* 6. メッセージ（より親しみやすい色合いに） */
+.alert-success { 
+    color: #065f46; background-color: #d1fae5; 
+    padding: 16px; 
+    margin-bottom: 20px; 
+    border-radius: 6px; 
+    border: 1px solid #a7f3d0; 
+    font-weight: bold; 
+}
+
+.alert-error { 
+    color: #991b1b; 
+    background-color: #fee2e2; 
+    padding: 16px; 
+    margin-bottom: 20px; 
+    border-radius: 6px; 
+    border: 1px solid #fecaca; 
+    font-weight: bold; 
+}
+
+/* 7. 通知バッジ（エラーを修正し、綺麗な丸みに） */
+.notification-badge {
+    background-color: #ef4444; 
+    color: white;
+    border-radius: 9999px; 
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 8px;
+    vertical-align: middle;
+    display: inline-block;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.notification-card {
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px;       
+  padding: 20px;
+  margin-bottom: 15px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+  transition: transform 0.2s;
+}
+
+.notification-card:hover {
+box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+}
+
+#product-history .required {
+    color: #e60000; 
+    font-size: 0.9em; 
+    margin-left: 5px; 
+}
+
+.btn-action { 
+    display: inline-block; 
+    padding: 10px 20px; 
+    color: white; 
+    border-radius: 6px; 
+    text-decoration: none; 
+    font-weight: bold; 
+    transition: 0.2s; 
+}
+
+.btn-action:hover { 
+    opacity: 0.8; 
+}
+
+.btn-green { 
+    background: #10b981; 
+}
+
+.btn-blue { 
+    background: #3b82f6; 
+}
+
+/* 8. 商品詳細（show.blade.php）用 */
+.detail-wrapper {
+    max-width: 600px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.detail-image {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.detail-image img {
+    max-width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.detail-image-placeholder {
+    padding: 50px;
+    background: #eee;
+    color: #666;
+    border-radius: 4px;
+}
+
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.detail-table tr {
+    border-bottom: 1px solid #ddd;
+}
+
+.detail-table th {
+    padding: 10px;
+    width: 30%;
+    font-weight: bold;
+    color: #4b5563;
+}
+
+.detail-table td {
+    padding: 10px;
+}
+
+.detail-table .price {
+    color: #e60000;
+    font-weight: bold;
+}
+
+.detail-back-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #666;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.detail-back-btn:hover {
+    background-color: #555;
+}
+
+/* 9. 商品編集（edit.blade.php）用 */
+.edit-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.edit-info p {
+    margin: 5px 0;
+}
+
+.edit-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #4b5563;
+}
+
+.edit-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.edit-error {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.edit-submit-btn {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.edit-submit-btn:hover {
+    background-color: #43a047;
+}
+
+.edit-cancel-link {
+    margin-left: 10px;
+    color: #6b7280;
+    text-decoration: none;
+}
+
+.edit-cancel-link:hover {
+    text-decoration: underline;
+}
+
+/* 10. 発送通知（notification.blade.php）用 */
+.notification-detail {
+   max-width: 500px;
+    /* 上の余白を 120px に増やして、もっと下に下げました */
+    margin: 120px auto 50px auto; 
+    padding: 30px;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.notification-detail h2 {
+    margin-top: 0;
+    border-left: 4px solid #10b981; /* 発送は緑ベースに変更 */
+    padding-left: 10px;
+    font-size: 1.25rem;
+}
+
+.notification-detail p {
+    margin: 12px 0;
+    color: #374151;
+}
+
+.ship-btn {
+    padding: 10px 20px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.ship-btn:hover {
+    background: #059669;
+}
+
+/* --- 出品者ダッシュボード・履歴関連の追加スタイル --- */
+
+/* 履歴テーブルの行のレイアウト */
+.product-item {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 0;
+    align-items: center;
+}
+
+/* 通知一覧のカード内ボタン調整 */
+.btn-action {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* 発送完了メッセージのスタイル */
+.status-completed-box {
+    background-color: #d4edda;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+/* 検索ボックスのスタイル統一 */
+.search-box {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+/* テーブルヘッダーの強調 */
+.table-header {
+    display: flex;
+    font-weight: bold;
+    border-bottom: 2px solid #374151;
+    padding-bottom: 10px;
+    margin-bottom: 5px;
+}
+
