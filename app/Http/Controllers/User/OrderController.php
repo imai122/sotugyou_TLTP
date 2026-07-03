@@ -167,7 +167,7 @@ class OrderController extends Controller
         $product->save();
 
         return redirect()->route('user.dashboard', ['tab' => 'history'])
-        ->with('success', '商品のコメントを削除しました。');
+        ->with('success', '商品のコメントを修正しました。');
     }
 
     public function destroy($id): RedirectResponse
