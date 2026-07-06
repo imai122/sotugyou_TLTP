@@ -46,5 +46,37 @@ class AdminUserSeeder extends Seeder
         'purchase_count' => 0,
         'rating' => 0,
     ]);
+
+    YIC_user::create([
+        'user_id' => 'seller01',
+        'name' => '出品者',
+        'email' => 'seller@example.com',
+        'password' => Hash::make('P@ssw0rd'),
+        'role' => 3,
+
+         'postal_code' => '000-0000',
+         'address' => '東京都',
+         'phone_number' => '000-0000-0000',
+         'bank_account' => '1234567',
+         'listing_count' => 0,
+         'purchase_count' => 0,
+         'rating' => 0,
+    ]);
+
+    YIC_user::create([
+        'user_id' => 'buyer01',
+        'name' => '買い手',
+        'email' => 'buyer@example.com',
+        'password' => Hash::make('P@ssw0rd'),
+        'role' => 4,
+
+         'postal_code' => '000-0000',
+         'address' => '東京都',
+         'phone_number' => '000-0000-0000',
+         'bank_account' => '1234567',
+         'listing_count' => 0,
+         'purchase_count' => 0,
+         'rating' => 0,
+    ]);
     }
 }

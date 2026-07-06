@@ -66,7 +66,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'user_id' => 'ログイン情報が正しくありません。',
+           'user_id' => __('validation.custom.user_id.wrong'),
+           'password' => __('validation.custom.password.wrong'),
         ])->withInput($request->only('user_id'));
     }
 

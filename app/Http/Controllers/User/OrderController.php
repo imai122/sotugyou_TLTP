@@ -69,7 +69,7 @@ class OrderController extends Controller
         $path = $request->file('image_path')->store('products', 'public');//写真を表示させる
         $products->image_path = $path;
     }
-       $products->seller_id = auth()->id();
+       $products->seller_id = auth()->user()->user_id; 
        $products->status = '出品中';
 
        if ($request->hasFile('image_path')) {
@@ -127,7 +127,7 @@ class OrderController extends Controller
 
 
         $sold_transactions = Transaction::with('products')
-        ->whereHas('products', function ($query) use ($userId) {
+        ->whereHas('products', function ($query) use ($loginUserId, $userId) {
             $query->where('seller_id', $userId);
         })
         ->get();
