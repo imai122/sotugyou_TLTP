@@ -67,7 +67,7 @@ function applyFilter() {
             let buttonsHTML = `<button onclick="markNotification('${txnId}', 'read')" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">既読にする</button>`;
             
             if (status == 5) {
-                buttonsHTML += `<button onclick="markNotification('${txnId}', 'delete')" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 5px;">🗑️ 削除</button>`;
+                buttonsHTML += `<button onclick="markNotification('${txnId}', 'delete')" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 5px;">削除</button>`;
             } else {
                 buttonsHTML += `<span style="color: #999; font-size: 12px; font-weight: bold; margin-left: 10px;">取引中のため削除不可</span>`;
             }
