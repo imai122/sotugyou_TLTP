@@ -44,7 +44,7 @@ class ProductController extends Controller
 
     public function index(): View//閲覧
     {
-        Product::updatedExpiredStatus();
+        Product::updateExpiredStatus();
         $products = Product::whereHas('yic_users', function ($query) { 
         $query->where('role', 3); // 出品者のみ
     })
