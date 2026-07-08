@@ -64,7 +64,7 @@ return [
       'providers' => [
     'users' => [
         'driver' => 'eloquent',
-        'model' => App\Models\YIC_user::class, // ここが正しく指定されているか
+        'model' => App\Models\YIC_user::class, 
     ],
 
  

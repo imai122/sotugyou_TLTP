@@ -136,7 +136,7 @@ public function updateBid(Request $request, $bid_id)
             'transaction_id' => $this->generateTransactionId(), 
             'product_id'     => $product_id,
             'buyer_id'       => $max_product->bidder_id,
-            'winning_price'  => $max_product->bid_amount, 
+            'winnig_price'  => $max_product->bid_amount, 
             'status'         => 1,                        
             'won_at'         => now(),
         ]);
@@ -157,10 +157,10 @@ public function updateBid(Request $request, $bid_id)
         $commissionRate = 0.10;
         
         // 手数料を計算（小数点以下は切り捨て）
-        $fee = floor($transaction->winning_price * $commissionRate); 
+        $fee = floor($transaction->winnig_price * $commissionRate); 
         
         // 振込金額を計算（落札金額 - 手数料）
-        $payoutAmount = $transaction->winning_price - $fee;
+        $payoutAmount = $transaction->winnig_price - $fee;
 
           return view('admin.shop.shipping', compact('transaction', 'fee', 'payoutAmount'));
      }
@@ -192,7 +192,7 @@ public function updateBid(Request $request, $bid_id)
         ->firstOrFail();
 
         $commissionRate = 0.10;
-        $payoutAmount = $transaction->winning_price * (1 - $commissionRate);
+        $payoutAmount = $transaction->winnig_price * (1 - $commissionRate);
 
        $transaction->update([
         'status' => 5,

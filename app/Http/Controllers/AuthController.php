@@ -18,7 +18,7 @@ use App\Mail\PasswordReissueMail;
 
 class AuthController extends Controller
 {
-    public function showUserLogin(): View
+    public function showUserLogin(): View//ログイン画面へ
     {
         return view('user.login');
     }
@@ -31,7 +31,7 @@ class AuthController extends Controller
     /**
      * 新規登録画面の表示
      */
-    public function create(): View
+    public function create(): View//新規登録画面へ
     {
         return view('user.register');
     }
@@ -68,7 +68,7 @@ class AuthController extends Controller
         return back()->withErrors([
            'user_id' => __('validation.custom.user_id.wrong'),
            'password' => __('validation.custom.password.wrong'),
-        ])->withInput($request->only('user_id'));
+        ])->withInput($request->only('user_id'));//間違えた場合にIDのみ残す
     }
 
     /**

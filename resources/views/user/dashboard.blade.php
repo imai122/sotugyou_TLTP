@@ -229,6 +229,7 @@
                             <label style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 6px 14px; border-radius: 9999px; display: inline-block;">発送完了</label>
                         @elseif($transaction->status == 5)
                             <span style="color: #007bff; font-weight: bold;">{{ number_format($transaction->payout_amount) }} 円が振り込まれました</span>
+                        
                         @else
                             <span style="color: #6c757d;">現在取引進行中</span>
                         @endif
